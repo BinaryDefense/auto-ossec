@@ -2,6 +2,7 @@
 Binary Defense Systems Auto-Enroll for OSSEC
 Written by: David Kennedy - BDS
 Version 1.2
+Supported Systems: Linux, Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The auto ossec enrollment will automatically provision OSSEC agents for both Linux and Windows. This is accomplished through a customized protocol
