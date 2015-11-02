@@ -13,11 +13,18 @@
 import platform
 import base64
 import socket
-from Crypto.Cipher import AES
 import sys
 import os
 import subprocess
 import time
+
+# try to import python-crypto
+try:
+	from Crypto.Cipher import AES
+
+except ImportError:
+	print ("[!] You need python-crypto in order for this module to work. If this is Ubuntu/Redhat - package name is python-crypto")
+	sys.exit()
 
 # check platform specific installs
 installer = ""
