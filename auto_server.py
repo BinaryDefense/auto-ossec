@@ -12,8 +12,10 @@ from threading import Thread
 import subprocess
 import sys
 
+# check python crypto library
 try:
 	from Crypto.Cipher import AES
+
 except ImportError:
 	print "[!] python-crypto not installed. Run 'apt-get install python-pycrypto pexpect' to fix."
 	sys.exit()
@@ -21,6 +23,7 @@ except ImportError:
 import base64
 import thread
 
+# check pexpect library
 try:
 	import pexpect
 except ImportError:
