@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+    <Product
+        Id='CF0B24A8-1E99-4D5D-8DB4-005CE796448C'
+        Language='1033'
+        Manufacturer='Binary Defense Systems'
+        Name='Auto OSSEC'
+        UpgradeCode='C90A53AC-3ED3-46A7-B718-701F20C5C68D'
+        Version='1.2.0.0'
+    >
+
+        <Package
+            Description="Binary Defense Systems, Auto OSSEC"
+            Compressed='yes'
+            Id='*'
+            InstallerVersion='300'
+            InstallScope='perMachine'
+            Platform='x86'
+        />
+
+        <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
+        <Property Id="ARPNOREPAIR" Value="1" />
+        <Property Id="ARPNOMODIFY" Value="1" />
+
+        <Media
+            Cabinet='AutoOSSEC.cab'
+            EmbedCab='yes'
+            Id='1'
+        />
+
+        <Directory Id='TARGETDIR' Name='SourceDir'>
+            <Directory Id='ProgramFilesFolder'>
+                <Directory Id='COMPANYDIRECTORY' Name='BinaryDefense'>
+                    <Directory Id='PRODUCTDIRECTORY' Name='AutoOSSEC'>
+                            <Component Guid='9FF38F51-0A2C-456E-974C-E91DD01C3143' Win64='no' Id='COMPAUTOOSSEC'>
+                                <File
+                                    Id='AUTOOSSECBINARY'
+                                    Name='auto_ossec.exe'
+                                    Source='auto_ossec.exe'
+                                    KeyPath='yes'
+                                    Vital='yes'
+                                    ReadOnly='yes'
+                                />
+                                <RemoveFolder Id='PRODUCTDIRECTORY' On='uninstall' />
+                            </Component>
+                    </Directory>
+                </Directory>
+            </Directory>
+        </Directory>
+
+        <Feature Id='Complete' Level="1">
+            <ComponentRef Id='COMPAUTOOSSEC' />
+        </Feature>
+
+        <CustomAction
+            Id="EXECAUTOOSSEC"
+            Execute="deferred"
+            Impersonate="no"
+            ExeCommand="$(var.ServerAddress)"
+            FileKey="AUTOOSSECBINARY"
+            Return="check"
+        />
+
+        <InstallExecuteSequence>
+            <Custom Action="EXECAUTOOSSEC" After="InstallExecute" />
+        </InstallExecuteSequence>
+    </Product>
+</Wix>
