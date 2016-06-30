@@ -6,3 +6,4 @@ version 1.4
 * added linux binary to allow native deployment of linux without python-crypto needed
 * formatted in autopep8 for consistency on tab indentation
 * added ability to use star as an IP address
+* added python3 compatibility

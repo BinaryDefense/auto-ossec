@@ -7,7 +7,7 @@
 #
 # Will listen on port 9654 for an incoming challege
 #
-import SocketServer
+import socketserver
 from threading import Thread
 import subprocess
 import sys
@@ -17,17 +17,18 @@ try:
     from Crypto.Cipher import AES
 
 except ImportError:
-    print "[!] python-crypto not installed. Run 'apt-get install python-pycrypto pexpect' to fix."
+    print(
+        "[!] python-crypto not installed. Run 'apt-get install python-pycrypto pexpect' to fix.")
     sys.exit()
 
 import base64
-import thread
+import _thread
 
 # check pexpect library
 try:
     import pexpect
 except ImportError:
-    print "[!] pexpect not installed. Run apt-get install pexpect to fix."
+    print("[!] pexpect not installed. Run apt-get install pexpect to fix.")
     sys.exit()
 
 import time
@@ -35,7 +36,7 @@ import socket
 import os
 
 
-class service(SocketServer.BaseRequestHandler):
+class service(socketserver.BaseRequestHandler):
 
     def handle(self):
         # parse OSSEC hids client certificate
@@ -119,7 +120,7 @@ class service(SocketServer.BaseRequestHandler):
         # recommend changing this - if you do, change auto_ossec.py as well - -
         # would recommend this is the default published to git
         secret = "(3j+-sa!333hNA2u3h@*!~h~2&^lk<!B"
-        print "Client connected with ", self.client_address
+        print("Client connected with ", self.client_address)
         try:
             data = self.request.recv(1024)
             if data != "":
@@ -131,8 +132,10 @@ class service(SocketServer.BaseRequestHandler):
                     if "BDSOSSEC" in data:
 
                         # if we are using star IP addresses
-                        if "BDSOSSEC*" in data: star = 1
-                        else: star = 0
+                        if "BDSOSSEC*" in data:
+                            star = 1
+                        else:
+                            star = 0
 
                         # write a lock file to check later on with our threaded
                         # process to restart OSSEC if needed every 10 minutes -
@@ -144,33 +147,37 @@ class service(SocketServer.BaseRequestHandler):
                             filewrite.close()
 
                         # strip identifier
-                        data = data.replace("BDSOSSEC*", "").replace("BDSOSSEC", "")
+                        data = data.replace(
+                            "BDSOSSEC*", "").replace("BDSOSSEC", "")
                         hostname = data
 
                         # pull the true IP, not the NATed one if they are using
                         # VMWare
-                        if star == 0: ipaddr = self.client_address[0]
-                        else: ipaddr = "*"
+                        if star == 0:
+                            ipaddr = self.client_address[0]
+                        else:
+                            ipaddr = "*"
 
                         # here if the hostname was already used, we need to
                         # remove it and call it again
                         data = parse_client(hostname, ipaddr)
                         if data == 0:
                             data = parse_client(hostname, ipaddr)
-                        print "[*] Provisioned new key for hostname: %s with IP of: %s" % (hostname, ipaddr)
+                        print("[*] Provisioned new key for hostname: %s with IP of: %s" %
+                              (hostname, ipaddr))
                         data = aescall(secret, data, "encrypt")
-                        print "[*] Sending new key to %s: " % (ipaddr) + data
+                        print("[*] Sending new key to %s: " % (ipaddr) + data)
                         self.request.send(data)
 
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
                     pass
 
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             pass
 
-        print "Pairing complete. Terminating connection to client."
+        print("Pairing complete. Terminating connection to client.")
         self.request.close()
 
 # this waits 5 minutes to check if new ossec agents have been deployed, if
@@ -181,15 +188,16 @@ def ossec_monitor():
     time.sleep(300)
     if os.path.isfile("lock"):
         os.remove("lock")
-        print "[*] New OSSEC agent added - triggering restart of service to add.."
+        print(
+            "[*] New OSSEC agent added - triggering restart of service to add..")
         subprocess.Popen("service ossec restart", stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True).wait()
 
 
-class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
-print "[*] The auto enrollment OSSEC Server is now listening on 9654"
+print("[*] The auto enrollment OSSEC Server is now listening on 9654")
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # set is so that when we cancel out we can reuse port
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -200,9 +208,9 @@ t = ThreadedTCPServer(('', 9654), service)
 # start the server and listen forever
 try:
     # start a threaded counter
-    thread.start_new_thread(ossec_monitor, ())
+    _thread.start_new_thread(ossec_monitor, ())
 
     t.serve_forever()
 
 except KeyboardInterrupt:
-    print "[*] Exiting the automatic enrollment OSSEC daemon"
+    print("[*] Exiting the automatic enrollment OSSEC daemon")
