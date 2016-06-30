@@ -1,0 +1,6 @@
+~~~~~~~~~~~~~~~~
+version 1.0
+~~~~~~~~~~~~~~~~
+
+* added allow reuse for threadedtcp server to allow binding immediately when the port is shut down
+* added linux binary to allow native deployment of linux without python-crypto needed
