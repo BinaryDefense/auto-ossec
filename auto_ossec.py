@@ -130,7 +130,7 @@ try:
             time.sleep(10)
             pass
 
-    print ("[*] Connected to auto enrollment server at IP: " + host)
+    print(("[*] Connected to auto enrollment server at IP: " + host))
     # grab host info needed for ossec
     data = grab_info()
 
