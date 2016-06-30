@@ -130,6 +130,10 @@ class service(SocketServer.BaseRequestHandler):
                     # request, has been decrypted and we're ready to rock
                     if "BDSOSSEC" in data:
 
+                        # if we are using star IP addresses
+                        if "BDSOSSEC*" in data: star = 1
+                        else: star = 0
+
                         # write a lock file to check later on with our threaded
                         # process to restart OSSEC if needed every 10 minutes -
                         # if lock file is present then it will trigger a
@@ -140,12 +144,13 @@ class service(SocketServer.BaseRequestHandler):
                             filewrite.close()
 
                         # strip identifier
-                        data = data.replace("BDSOSSEC", "")
+                        data = data.replace("BDSOSSEC*", "").replace("BDSOSSEC", "")
                         hostname = data
 
                         # pull the true IP, not the NATed one if they are using
                         # VMWare
-                        ipaddr = self.client_address[0]
+                        if star == 0: ipaddr = self.client_address[0]
+                        else: ipaddr = "*"
 
                         # here if the hostname was already used, we need to
                         # remove it and call it again
