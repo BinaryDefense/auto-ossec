@@ -66,7 +66,7 @@ try:
 
 except IndexError:
     print ("""
-******************************************************
+*********************************************************************************************
 Binary Defense Systems OSSEC Auto Enrollment
 
 In order for this to work, you need to point
@@ -78,21 +78,24 @@ Note that if you specify optional *, this will
 place a * for the IP address in the config and
 allow any IP address (for dynamic IP addresses).
 
-Also note if you specify "y" at the end, this is for
+Also note if you specify url=<site> at the end, this is for
 Linux only, it will automatically download and install
 OSSEC for you and configure it based on the server-ip.
 You do not need to do a * before
 
-Example: auto_ossec.exe/.bin 192.168.5.5 * y
-Example2: auto_ossec.bin 192.168.5.5 y
-Usage: auto_ossec.exe <server_ip> <optional: *> <optional: y>
+Example: auto_ossec.exe/.bin 192.168.5.5 * url=https://bintray.com/etc/etc/ossec-hids.tar.gz
+Example2: auto_ossec.bin 192.168.5.5 url=https://somewebsite.com/ossec-hids-2.8.3.tar.gz
+Usage: auto_ossec.exe <server_ip> <optional: *> <optional: url>
 
-*****************************************************
+Example URL: https://bintray.com/artifact/download/ossec/ossec-hids/ossec-hids-2.8.3.tar.gz
+
+********************************************************************************************
 		""")
     sys.exit()
 
 # url for OSSEC HERE
-url = ("https://bintray.com/artifact/download/ossec/ossec-hids/ossec-hids-2.8.3.tar.gz")
+if "url=" in autoinstall: 
+    url = autoinstall.replace("url=", "").replace('"', "", 2)
 version_name = url.split("/ossec-hids/")[1].replace(".tar.gz", "")
 
 # download ossec
@@ -135,7 +138,7 @@ def _installossec(serverip,version_name):
 
 # this is the auto installation process here
 if installer == "Linux":
-    if autoinstall.lower() == "y":
+    if "url=" in autoinstall:
         print("[*] Automatically installing OSSEC on Linux for you with version: " + (version_name))
         _download_ossec(url)
         _installossec(host,version_name)

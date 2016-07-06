@@ -1,7 +1,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Binary Defense Systems Auto-Enroll for OSSEC
 Written by: David Kennedy - BDS
-Version 1.5
+Version 1.5.1
 Supported Systems: Linux, Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -44,11 +44,11 @@ You can now automatically install Linux as part of the auto_ossec.bin and auto_o
 
 In order to automatically install Linux, run the following command as root/sudo:
 
-./auto_ossec.bin <server_ip> y
+./auto_ossec.bin <server_ip> url=urlto/ossec.tar.gz
 
-The server IP address is the IP address of your OSSEC server installation. The "y" specifies that you want to automatically install. You can also specify a wildcard for your hostname of the AGENT. To do this you can type:
+The server IP address is the IP address of your OSSEC server installation. The url=<site> specifies that you want to automatically install. You can also specify a wildcard for your hostname of the AGENT. To do this you can type:
 
-./auto_ossec.bin <server_ip> * y
+./auto_ossec.bin <server_ip> * url=https://bintray.com/artifact/download/ossec/ossec-hids/ossec-hids-2.8.3.tar.gz
 
 This will automatically install OSSEC through the Internet and specify a wildcard for the IP address of the agent. This is useful when installing agents on dynamic IP addresses.
 

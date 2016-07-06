@@ -18,7 +18,7 @@ try:
 
 except ImportError:
     print(
-        "[!] python-crypto not installed. Run 'apt-get install python-pycrypto pexpect' to fix.")
+        "[!] ERROR: python-crypto not installed. Run 'apt-get install python-pycrypto pexpect' to fix.")
     sys.exit()
 
 import base64
@@ -28,7 +28,7 @@ import _thread
 try:
     import pexpect
 except ImportError:
-    print("[!] pexpect not installed. Run apt-get install pexpect to fix.")
+    print("[!] ERROR: pexpect not installed. Run apt-get install pexpect to fix.")
     sys.exit()
 
 import time

@@ -1,4 +1,10 @@
 ~~~~~~~~~~~~~~~~
+verison 1.5.1
+~~~~~~~~~~~~~~~~
+
+* changed it so the user can specify the URL not hardcoded URLs. This might be good for folks that don't want to use the regular website and specify their own or if they have an SSL issue, can switch to HTTP
+
+~~~~~~~~~~~~~~~~
 version 1.5
 ~~~~~~~~~~~~~~~~
 
