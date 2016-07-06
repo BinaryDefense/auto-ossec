@@ -17,6 +17,7 @@ import sys
 import os
 import subprocess
 import time
+import urllib2
 
 # try to import python-crypto
 try:
@@ -40,16 +41,22 @@ if installer == "":
         "[!] Unable to determine operating system. Only supports Linux and Windows. Exiting..")
     sys.exit()
 
+
 #
 # NEED TO DEFINE THIS AS THE OSSEC SERVER HOST THAT IS RUNNING SERVER.PY
 #
 star = ""
+autoinstall = ""
 try:
     host = sys.argv[1]
-    try:
+    try: 
         star = sys.argv[2]
-    except:
-        pass
+        if "y" in star: autoinstall = star
+
+    except: pass
+
+    try: autoinstall = sys.argv[3]
+    except: pass
 
 except IndexError:
     print ("""
@@ -65,13 +72,66 @@ Note that if you specify optional *, this will
 place a * for the IP address in the config and
 allow any IP address (for dynamic IP addresses).
 
-Example: auto_ossec.exe/.bin 192.168.5.5 *
-Usage: auto_ossec.exe <server_ip> <optional: *>
+Also note if you specify "y" at the end, this is for
+Linux only, it will automatically download and install
+OSSEC for you and configure it based on the server-ip.
+You do not need to do a * before
+
+Example: auto_ossec.exe/.bin 192.168.5.5 * y
+Example2: auto_ossec.bin 192.168.5.5 y
+Usage: auto_ossec.exe <server_ip> <optional: *> <optional: y>
 
 *****************************************************
 		""")
     sys.exit()
 
+# url for OSSEC HERE
+url = ("https://bintray.com/artifact/download/ossec/ossec-hids/ossec-hids-2.8.3.tar.gz")
+version_name = url.split("/ossec-hids/")[1].replace(".tar.gz", "")
+
+# download ossec
+def _download_ossec(url):
+    ossec_file = urllib2.urlopen(url).read()
+    filewrite = file("/tmp/ossec.tar.gz", "wb")
+    filewrite.write(ossec_file)
+    filewrite.close()
+
+# install ossec once downloaded
+def _installossec(serverip,version_name):
+    cwd = os.getcwd()
+    os.chdir("/tmp/")
+    subprocess.Popen("tar -zxvf ossec.tar.gz;rm ossec.tar.gz", shell=True).wait()
+
+    #####
+    #####
+    ##### CHANGE THESE IF YOU WANT DIFFERENT CONFIG OPTIONS - read: http://ossec-docs.readthedocs.io/en/latest/manual/installation/install-source-unattended.html
+    #####
+    #####
+    ossec_preload = ('''
+                    USER_LANGUAGE="en"
+                    USER_NO_STOP="y"
+                    USER_INSTALL_TYPE="agent"
+                    USER_DIR="/var/ossec"
+                    USER_ENABLE_ACTIVE_RESPONSE="n"
+                    USER_ENABLE_SYSCHECK="y"
+                    USER_ENABLE_ROOTCHECK="y"
+                    USER_UPDATE_RULES="y"
+                    USER_AGENT_SERVER_IP="%s"
+                    USER_ENABLE_EMAIL="n"
+                    USER_ENABLE_FIREWALL_RESPONSE="n"
+                    ''' % (serverip))
+
+    filewrite = file("/tmp/%s/etc/preloaded-vars.conf" % (version_name), "w")
+    filewrite.write(ossec_preload)
+    filewrite.close()
+    subprocess.Popen("cd %s;chmod +x;./install.sh" % (version_name), shell=True).wait()
+
+# this is the auto installation process here
+if installer == "Linux":
+    if autoinstall.lower() == "y":
+        print("[*] Automatically installing OSSEC on Linux for you with version: " + (version_name))
+        _download_ossec(url)
+        _installossec(host,version_name)
 
 def aescall(secret, data, format):
 
@@ -173,12 +233,9 @@ try:
         if os.path.isfile(path + "/etc/client.keys"):
             os.remove("etc/client.keys")
         filewrite = file(path + "/etc/client.keys", "w")
-
     data = base64.b64decode(data)
     filewrite.write(data)
     filewrite.close()
-    # subprocess.Popen("echo y | manage_agents.exe -i %s" % data,
-    # stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
     print ("[*] Successfully imported the new pairing key.")
     print ("[*] Stopping the OSSEC service, just in case its running.")
     # stop the service if it is
@@ -190,10 +247,9 @@ try:
         subprocess.Popen("service ossec stop", stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True).wait()
 
-    print ("[*] Modifying ossec.conf to incorporate server host IP address.")
     # make sure we modify the ossec.conf
-
     if installer == "Windows":
+        print ("[*] Modifying ossec.conf to incorporate server host IP address.")
         data = file(path + "\\ossec.conf", "r").read()
         if not "<server-ip>%s</server-ip>" % (host) in data:
             filewrite = file(path + "\\ossec.conf", "a")
@@ -201,18 +257,6 @@ try:
             filewrite.write(" <ossec_config>")
             filewrite.write("   <client>")
             filewrite.write("      <server-ip>%s</server-ip>" % (host))
-            filewrite.write("   </client>")
-            filewrite.write(" </ossec_config>")
-            filewrite.close()
-
-    if installer == "Linux":
-        data = file(path + "etc/ossec.conf", "r").read()
-        if not "<server-ip>%s</server-ip>" % (host) in data:
-            filewrite = file(path + "etc/ossec.conf", "a")
-            filewrite.write("\n")
-            filewrite.write(" <ossec_config>")
-            filewrite.write("   <client>")
-            filewrite.write("    <server-ip>%s</server-ip>" % (host))
             filewrite.write("   </client>")
             filewrite.write(" </ossec_config>")
             filewrite.close()

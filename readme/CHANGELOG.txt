@@ -1,4 +1,12 @@
 ~~~~~~~~~~~~~~~~
+version 1.5
+~~~~~~~~~~~~~~~~
+
+* removed config options for Linux as it is not needed to modify the config options - should specify server IP when you do the install
+* added new option to automatically install Linux through urllib2 which will download and install it automatically for you
+* updated installation guidelines to reflect new changes to auto_ossec
+
+~~~~~~~~~~~~~~~~
 version 1.4
 ~~~~~~~~~~~~~~~~
 
