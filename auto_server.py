@@ -185,13 +185,14 @@ class service(socketserver.BaseRequestHandler):
 
 
 def ossec_monitor():
-    time.sleep(300)
-    if os.path.isfile("lock"):
-        os.remove("lock")
-        print(
-            "[*] New OSSEC agent added - triggering restart of service to add..")
-        subprocess.Popen("service ossec restart", stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, shell=True).wait()
+    while 1:
+        time.sleep(300)
+        if os.path.isfile("lock"):
+            os.remove("lock")
+            print(
+                "[*] New OSSEC agent added - triggering restart of service to add..")
+            subprocess.Popen("service ossec restart", stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, shell=True).wait()
 
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):

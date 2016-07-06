@@ -7,6 +7,7 @@ version 1.5
 * updated installation guidelines to reflect new changes to auto_ossec
 * added cleanup for old static files on auto install
 * added better options for flexibility on argv values for star and y
+* fixed no loop when starting ossec_server for 5 minute check
 
 ~~~~~~~~~~~~~~~~
 version 1.4
