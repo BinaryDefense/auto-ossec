@@ -48,6 +48,7 @@ if installer == "":
 #
 star = ""
 autoinstall = ""
+version_name = ""
 try:
     host = sys.argv[1]
     try: 
@@ -96,7 +97,7 @@ Example URL: https://bintray.com/artifact/download/ossec/ossec-hids/ossec-hids-2
 # url for OSSEC HERE
 if "url=" in autoinstall: 
     url = autoinstall.replace("url=", "").replace('"', "", 2)
-version_name = url.split("/ossec-hids/")[1].replace(".tar.gz", "")
+    version_name = url.split("/ossec-hids/")[1].replace(".tar.gz", "")
 
 # download ossec
 def _download_ossec(url):
