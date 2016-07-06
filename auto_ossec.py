@@ -17,7 +17,8 @@ import sys
 import os
 import subprocess
 import time
-import urllib2
+try: import urllib.request as urllib
+except: import urllib
 
 # try to import python-crypto
 try:
@@ -96,8 +97,8 @@ version_name = url.split("/ossec-hids/")[1].replace(".tar.gz", "")
 
 # download ossec
 def _download_ossec(url):
-    ossec_file = urllib2.urlopen(url).read()
-    filewrite = file("/tmp/ossec.tar.gz", "wb")
+    ossec_file = urllib.urlopen(url).read()
+    filewrite = open("/tmp/ossec.tar.gz", "wb")
     filewrite.write(ossec_file)
     filewrite.close()
 
@@ -126,7 +127,7 @@ def _installossec(serverip,version_name):
                     USER_ENABLE_FIREWALL_RESPONSE="n"
                     ''' % (serverip))
 
-    filewrite = file("/tmp/%s/etc/preloaded-vars.conf" % (version_name), "w")
+    filewrite = open("/tmp/%s/etc/preloaded-vars.conf" % (version_name), "w")
     filewrite.write(ossec_preload)
     filewrite.close()
     subprocess.Popen("cd %s;chmod +x;./install.sh" % (version_name), shell=True).wait()
@@ -233,12 +234,12 @@ try:
         if os.path.isfile("client.keys"):
             os.remove("client.keys")
         # import the key with the key presented from the server daemon
-        filewrite = file(path + "\\client.keys", "w")
+        filewrite = open(path + "\\client.keys", "w")
 
     if installer == "Linux":
         if os.path.isfile(path + "/etc/client.keys"):
             os.remove("etc/client.keys")
-        filewrite = file(path + "/etc/client.keys", "w")
+        filewrite = open(path + "/etc/client.keys", "w")
     data = base64.b64decode(data)
     filewrite.write(data)
     filewrite.close()
@@ -256,9 +257,9 @@ try:
     # make sure we modify the ossec.conf
     if installer == "Windows":
         print ("[*] Modifying ossec.conf to incorporate server host IP address.")
-        data = file(path + "\\ossec.conf", "r").read()
+        data = open(path + "\\ossec.conf", "r").read()
         if not "<server-ip>%s</server-ip>" % (host) in data:
-            filewrite = file(path + "\\ossec.conf", "a")
+            filewrite = open(path + "\\ossec.conf", "a")
             filewrite.write("\n")
             filewrite.write(" <ossec_config>")
             filewrite.write("   <client>")
