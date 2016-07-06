@@ -50,12 +50,17 @@ autoinstall = ""
 try:
     host = sys.argv[1]
     try: 
-        star = sys.argv[2]
-        if "y" in star: autoinstall = star
+        test = sys.argv[2]
+        if "*" in sys.argv[2]: star = sys.argv[2]
+        else: autoinstall = sys.argv[2]
 
     except: pass
 
-    try: autoinstall = sys.argv[3]
+    try: 
+        test = sys.argv[3]
+        if "*" in sys.argv[3]: star = sys.argv[3]
+        else: autoinstall = sys.argv[3]
+
     except: pass
 
 except IndexError:
@@ -125,6 +130,7 @@ def _installossec(serverip,version_name):
     filewrite.write(ossec_preload)
     filewrite.close()
     subprocess.Popen("cd %s;chmod +x;./install.sh" % (version_name), shell=True).wait()
+    subprocess.Popen("rm -rf /tmp/%s" % (version_name), shell=True).wait()
 
 # this is the auto installation process here
 if installer == "Linux":
