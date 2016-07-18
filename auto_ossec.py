@@ -19,15 +19,15 @@ import subprocess
 import time
 try: import urllib.request as urllib
 except: import urllib
-import re
 
 # try to import python-crypto
 try:
     from Crypto.Cipher import AES
 
-except ImportError:
+except ImportError as e:
     print (
         "[!] You need python-crypto in order for this module to work. If this is Ubuntu/Redhat - package name is python-crypto")
+    print(e)
     sys.exit()
 
 # check platform specific installs
@@ -98,7 +98,133 @@ def _download_ossec(url):
     filewrite = open("/tmp/ossec.tar.gz", "wb")
     filewrite.write(ossec_file)
     filewrite.close()
+    
+# MODIFY THIS IF YOU NEED TO CHANGE SOME OF THE BASE OSSEC INSTALL CONFIG OPTIONS    
+def _pull_ossec_config(hostname):
+    ossec_config = (r"""
+<ossec_config>
 
+  <!-- One entry for each file/Event log to monitor. -->
+  <localfile>
+    <location>Application</location>
+    <log_format>eventlog</log_format>
+  </localfile>
+
+  <localfile>
+    <location>Security</location>
+    <log_format>eventlog</log_format>
+  </localfile>
+
+  <localfile>
+    <location>System</location>
+    <log_format>eventlog</log_format>
+  </localfile>
+
+
+  <!-- Rootcheck - Policy monitor config -->
+  <rootcheck>
+    <windows_audit>./shared/win_audit_rcl.txt</windows_audit>
+    <windows_apps>./shared/win_applications_rcl.txt</windows_apps>
+    <windows_malware>./shared/win_malware_rcl.txt</windows_malware>
+  </rootcheck>  
+
+
+   <!-- Syscheck - Integrity Checking config. -->
+  <syscheck>
+  
+    <!-- Default frequency, every 20 hours. It doesn't need to be higher
+      -  on most systems and one a day should be enough.
+      -->
+    <frequency>72000</frequency>
+
+    <!-- By default it is disabled. In the Install you must choose
+      -  to enable it.
+      -->
+    <disabled>no</disabled>  
+
+
+    <!-- Default files to be monitored - system32 only. -->
+    <directories check_all="yes">%WINDIR%/win.ini</directories>
+    <directories check_all="yes">%WINDIR%/system.ini</directories>
+    <directories check_all="yes">C:\autoexec.bat</directories>
+    <directories check_all="yes">C:\config.sys</directories>
+    <directories check_all="yes">C:\boot.ini</directories>
+    <directories check_all="yes">%WINDIR%/System32/CONFIG.NT</directories>
+    <directories check_all="yes">%WINDIR%/System32/AUTOEXEC.NT</directories>
+    <directories check_all="yes">%WINDIR%/System32/at.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/attrib.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/cacls.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/debug.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/drwatson.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/drwtsn32.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/edlin.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/eventcreate.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/eventtriggers.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/ftp.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/net.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/net1.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/netsh.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/rcp.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/reg.exe</directories>
+    <directories check_all="yes">%WINDIR%/regedit.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/regedt32.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/regsvr32.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/rexec.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/rsh.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/runas.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/sc.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/subst.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/telnet.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/tftp.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/tlntsvr.exe</directories>
+    <directories check_all="yes">%WINDIR%/System32/drivers/etc</directories>
+    <directories check_all="yes" realtime="yes">C:\Documents and Settings/All Users/Start Menu/Programs/Startup</directories>
+    <directories check_all="yes" realtime="yes">C:\Users/Public/All Users/Microsoft/Windows/Start Menu/Startup</directories>
+    <ignore type="sregex">.log$|.htm$|.jpg$|.png$|.chm$|.pnf$|.evtx$</ignore>
+
+    <!-- Windows registry entries to monitor. -->
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Classes\batfile</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Classes\cmdfile</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Classes\comfile</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Classes\exefile</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Classes\piffile</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Classes\AllFilesystemObjects</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Classes\Directory</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Classes\Folder</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Classes\Protocols</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Policies</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Security</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Microsoft\Internet Explorer</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\KnownDLLs</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\SecurePipeServers\winreg</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\RunOnce</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\RunOnceEx</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\URL</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Windows</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Winlogon</windows_registry>
+    <windows_registry>HKEY_LOCAL_MACHINE\Software\Microsoft\Active Setup\Installed Components</windows_registry>
+
+
+    <!-- Windows registry entries to ignore. -->
+    <registry_ignore>HKEY_LOCAL_MACHINE\Security\Policy\Secrets</registry_ignore>
+    <registry_ignore>HKEY_LOCAL_MACHINE\Security\SAM\Domains\Account\Users</registry_ignore>
+    <registry_ignore type="sregex">\Enum$</registry_ignore>
+  </syscheck>    
+
+  <active-response>
+    <disabled>yes</disabled>
+  </active-response>
+
+   <client>
+      <server-ip>REPLACEHERE</server-ip>
+   </client>
+ </ossec_config>""")
+ 
+    return ossec_config.replace("<server-ip>REPLACEHERE</server-ip>", "<server-ip>%s</server-ip>" % (host))
+ 
 # install ossec once downloaded
 def _installossec(serverip,version_name):
     cwd = os.getcwd()
@@ -138,7 +264,6 @@ if installer == "Linux":
         _installossec(host,version_name)
 
 def aescall(secret, data, format):
-
     # padding and block size
     PADDING = '{'
     BLOCK_SIZE = 32
@@ -253,29 +378,17 @@ try:
 
     # make sure we modify the ossec.conf
     if installer == "Windows":
-        print ("[*] Modifying ossec.conf to incorporate server host IP address.")
-        data = open(path + "\\ossec.conf", "r").read()
-        # need to match anything - even if blank server-ip tags are present
-        #pattern = re.compile("<server-ip>\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}</server-ip>")
-        pattern = re.compile("<server-ip>.*</server-ip>")
-        if not pattern in data:
-            filewrite = open(path + "\\ossec.conf", "a")
-            filewrite.write("\n")
-            filewrite.write(" <ossec_config>\n")
-            filewrite.write("   <client>\n")
-            filewrite.write("      <server-ip>%s</server-ip>\n" % (host))
-            filewrite.write("   </client>\n")
-            filewrite.write(" </ossec_config>\n")
-            filewrite.close()
-        # if server-tags are in there, then remove duplicate IP address
-        else:
-            sub_ip = re.sub("<server-ip>.*</server-ip>", "<server-ip>%s</server-ip>", data)
+        if os.path.isfile(path + "\\ossec.conf"):
+            print ("[*] Overwriting the ossec.conf to incorporate server host IP address.")
+            ossec_config = _pull_ossec_config(host)
             filewrite = open(path + "\\ossec.conf", "w")
-            filewrite.write(sub_ip)
+            filewrite.write(ossec_config)
             filewrite.close()
-
+        else: 
+            print("[!] Unable to find the ossec.conf file in: " + path + "\\ossec.conf")
+            print("[!] Please install OSSEC first before running any of this.")
+            sys.exit()
             
-
     # start the service
     if installer == "Windows":
         subprocess.Popen('net start "OSSEC HIDS"', stdout=subprocess.PIPE,
@@ -285,14 +398,9 @@ try:
         subprocess.Popen("service ossec start", stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True).wait()
 
-    print (
-        "[*] Finished. Started the OSSEC service. Auto Enrollment for OSSEC is now finished.")
-
+    print ("[*] Finished. Started the OSSEC service. Auto Enrollment for OSSEC is now finished.")
 
 except KeyboardInterrupt:
-    print ("Sounds good.. Abording Auto-OSSEC...")
+    print ("Sounds good.. Aborting Auto-OSSEC...")
     sys.exit()
-except Exception as error:
-    print (
-        "[*] Something did not complete. Does this system have Internet access?")
-    print (error)
+except Exception as error: print ("[*] Something did not complete. Does this system have Internet access?")
