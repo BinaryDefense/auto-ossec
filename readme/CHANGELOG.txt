@@ -3,6 +3,7 @@ version 1.5.2
 ~~~~~~~~~~~~~~~~
 
 * removed duplicate additions in for Windows - when installing - auto-ossec will use regular expressions instead of basic logic in order to determine if server-ip already exists
+* instead of moving towards replacing existing entries, this became problematic for non-standard use/edge cases - instead auto-ossec now bundles the entire OSSEC config into the exe, bin, and .py files. This is useful so you never have a duplicate ever in the config file when doing multiple deployments. Whats also nice about this method is you can centrally manage one config option - so you can basically just make your changes in the .py file, make a binary through pyinstaller or py2exe, then deploy one consistent system across the board
 
 ~~~~~~~~~~~~~~~~
 verison 1.5.1
