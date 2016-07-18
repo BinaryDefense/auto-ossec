@@ -1,4 +1,10 @@
 ~~~~~~~~~~~~~~~~
+version 1.5.2
+~~~~~~~~~~~~~~~~
+
+* removed duplicate additions in for Windows - when installing - auto-ossec will use regular expressions instead of basic logic in order to determine if server-ip already exists
+
+~~~~~~~~~~~~~~~~
 verison 1.5.1
 ~~~~~~~~~~~~~~~~
 

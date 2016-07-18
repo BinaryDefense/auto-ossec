@@ -19,6 +19,7 @@ import subprocess
 import time
 try: import urllib.request as urllib
 except: import urllib
+import re
 
 # try to import python-crypto
 try:
@@ -67,22 +68,15 @@ try:
 
 except IndexError:
     print ("""
-*********************************************************************************************
-Binary Defense Systems OSSEC Auto Enrollment
+Binary Defense Systems (BDS) OSSEC Auto Enrollment
+https://www.binarydefense.com
+Written by: The BDS Crew: Dave Kennedy, Charles Yost, Jimmy Byrd, Jason Ashton, Eric Itangata
 
-In order for this to work, you need to point
-auto_ossec.exe to the OSSEC server that is
-listening. Note that default port is 9654
-but this can be changed in the source.
+In order for this to work, you need to point auto_ossec.exe to the OSSEC server that is listening. Note that default port is 9654 but this can be changed in the source.
 
-Note that if you specify optional *, this will
-place a * for the IP address in the config and
-allow any IP address (for dynamic IP addresses).
+Note that if you specify optional *, this will place a * for the IP address in the config and allow any IP address (for dynamic IP addresses).
 
-Also note if you specify url=<site> at the end, this is for
-Linux only, it will automatically download and install
-OSSEC for you and configure it based on the server-ip.
-You do not need to do a * before
+Also note if you specify url=<site> at the end, this is for Linux only, it will automatically download and install OSSEC for you and configure it based on the server-ip. You do not need to do a * before
 
 Example: auto_ossec.exe/.bin 192.168.5.5 * url=https://bintray.com/etc/etc/ossec-hids.tar.gz
 Example2: auto_ossec.bin 192.168.5.5 url=https://somewebsite.com/ossec-hids-2.8.3.tar.gz
@@ -90,7 +84,6 @@ Usage: auto_ossec.exe <server_ip> <optional: *> <optional: url>
 
 Example URL: https://bintray.com/artifact/download/ossec/ossec-hids/ossec-hids-2.8.3.tar.gz
 
-********************************************************************************************
 		""")
     sys.exit()
 
@@ -262,15 +255,26 @@ try:
     if installer == "Windows":
         print ("[*] Modifying ossec.conf to incorporate server host IP address.")
         data = open(path + "\\ossec.conf", "r").read()
-        if not "<server-ip>%s</server-ip>" % (host) in data:
+        # need to match anything - even if blank server-ip tags are present
+        #pattern = re.compile("<server-ip>\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}</server-ip>")
+        pattern = re.compile("<server-ip>.*</server-ip>")
+        if not pattern in data:
             filewrite = open(path + "\\ossec.conf", "a")
             filewrite.write("\n")
-            filewrite.write(" <ossec_config>")
-            filewrite.write("   <client>")
-            filewrite.write("      <server-ip>%s</server-ip>" % (host))
-            filewrite.write("   </client>")
-            filewrite.write(" </ossec_config>")
+            filewrite.write(" <ossec_config>\n")
+            filewrite.write("   <client>\n")
+            filewrite.write("      <server-ip>%s</server-ip>\n" % (host))
+            filewrite.write("   </client>\n")
+            filewrite.write(" </ossec_config>\n")
             filewrite.close()
+        # if server-tags are in there, then remove duplicate IP address
+        else:
+            sub_ip = re.sub("<server-ip>.*</server-ip>", "<server-ip>%s</server-ip>", data)
+            filewrite = open(path + "\\ossec.conf", "w")
+            filewrite.write(sub_ip)
+            filewrite.close()
+
+            
 
     # start the service
     if installer == "Windows":
