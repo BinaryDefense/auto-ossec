@@ -5,6 +5,8 @@ version 1.5.3
 * changed file to open for python3 compatibility
 * large rework for python2 and python3 compatibility
 * fixed star working on systems
+* changed service ossec stop to /var/ossec/bin/ossec-control stop
+* added OSX support
 
 ~~~~~~~~~~~~~~~~
 version 1.5.2

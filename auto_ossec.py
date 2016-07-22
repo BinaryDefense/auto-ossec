@@ -32,7 +32,7 @@ except ImportError as e:
 
 # check platform specific installs
 installer = ""
-if platform.system() == "Linux":
+if platform.system() == "Linux" or platform.system() == "Darwin":
     installer = "Linux"
 
 if platform.system() == "Windows":
@@ -373,7 +373,7 @@ try:
                          stderr=subprocess.PIPE, shell=True).wait()
 
     if installer == "Linux":
-        subprocess.Popen("service ossec stop", stdout=subprocess.PIPE,
+        subprocess.Popen("/var/ossec/bin/ossec-control stop", stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True).wait()
 
     # make sure we modify the ossec.conf
