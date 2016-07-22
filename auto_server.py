@@ -75,11 +75,6 @@ class service(socketserver.BaseRequestHandler):
 
                     return key
 
-                if i == 1:
-                    print("[!] Server responded with not supporting wildcards. AlienVault appears to support this however standard OSSEC does not.")
-                    print("[!] Unable to add host based on wildcard certificates on this system.")
-                    return "star_issue"
-
             # if we have a duplicate hostname
             if i == 1:
                 child.close()
@@ -164,18 +159,15 @@ class service(socketserver.BaseRequestHandler):
                         else:
                             ipaddr = "*"
 
+                        if ipaddr == "*": ipaddr = ("0.0.0.0/0")
                         # here if the hostname was already used, we need to
                         # remove it and call it again
                         data = parse_client(hostname, ipaddr)
                         if data == 0:
                             data = parse_client(hostname, ipaddr)
 
-                        if data == "star_issue":
-                            print("[*] Sending star issue to client to report.")
-
-                        else:
-                            print("[*] Provisioned new key for hostname: %s with IP of: %s" %
-                                 (hostname, ipaddr))
+                        print("[*] Provisioned new key for hostname: %s with IP of: %s" %
+                             (hostname, ipaddr))
                         data = aescall(secret, data, "encrypt")
                         print("[*] Sending new key to %s: " % (ipaddr) + data)
                         self.request.send(data.encode('utf-8'))
