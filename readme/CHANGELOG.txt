@@ -1,4 +1,11 @@
 ~~~~~~~~~~~~~~~~
+version 1.5.3
+~~~~~~~~~~~~~~~~
+
+* changed file to open for python3 compatibility
+* large rework for python2 and python3 compatibility
+
+~~~~~~~~~~~~~~~~
 version 1.5.2
 ~~~~~~~~~~~~~~~~
 

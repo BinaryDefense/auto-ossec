@@ -53,33 +53,39 @@ class service(socketserver.BaseRequestHandler):
             # if we haven't already added the hostname
             if i == 0:
                 child.sendline(ipaddr)
-                child.expect("for the new agent")
-                child.sendline("")
-                for line in child:
-                    # pull id
-                    if "[" in line:
-                        id = line.replace(
-                            "[", "").replace("]", "").replace(":", "").rstrip()
-                    break
-                child.expect("Confirm adding it?")
-                child.sendline("y")
-                child.sendline("")
-                child.sendline("q")
-                child.close()
+                i = child.expect(['for the new agent', 'Invalid IP'])
+                if i == 0:
+                    child.sendline("")
+                    for line in child:
+                        line = line.decode('utf-8')
+                        # pull id
+                        if "[" in line:
+                            id = line.replace(
+                                "[", "").replace("]", "").replace(":", "").rstrip()
+                        break
+                    child.expect("Confirm adding it?")
+                    child.sendline("y")
+                    child.sendline("")
+                    child.sendline("q")
+                    child.close()
+                    child = pexpect.spawn(
+                        "/var/ossec/bin/manage_agents -e %s" % (id))
+                    for line in child:
+                        key = line.rstrip()
 
-                child = pexpect.spawn(
-                    "/var/ossec/bin/manage_agents -e %s" % (id))
-                for line in child:
-                    key = line.rstrip()
+                    return key
 
-                return key
+                if i == 1:
+                    print("[!] Server responded with not supporting wildcards. AlienVault appears to support this however standard OSSEC does not.")
+                    print("[!] Unable to add host based on wildcard certificates on this system.")
+                    return "star_issue"
 
             # if we have a duplicate hostname
-            else:
+            if i == 1:
                 child.close()
                 child = pexpect.spawn("/var/ossec/bin/manage_agents -l")
                 for line in child:
-                    line = line.rstrip()
+                    line = line.decode('utf-8').rstrip()
                     if hostname in line:
                         id = line.split(",")[0].replace(
                             "ID: ", "").replace("   ", "").rstrip()
@@ -104,10 +110,8 @@ class service(socketserver.BaseRequestHandler):
 
             # one-liners to encrypt/encode and decrypt/decode a string
             # encrypt with AES, encode with base64
-            EncodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
-            DecodeAES = lambda c, e: c.decrypt(
-                base64.b64decode(e)).rstrip(PADDING)
-
+            EncodeAES = lambda c, s: bytes(base64.b64encode(c.encrypt(pad(s))))
+            DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)) # , 'utf-8')
             cipher = AES.new(secret)
 
             if format == "encrypt":
@@ -116,6 +120,7 @@ class service(socketserver.BaseRequestHandler):
 
             if format == "decrypt":
                 aes = DecodeAES(cipher, data)
+                aes = aes.decode('utf-8')
                 return str(aes)
 
         # recommend changing this - if you do, change auto_ossec.py as well - -
@@ -143,13 +148,13 @@ class service(socketserver.BaseRequestHandler):
                         # if lock file is present then it will trigger a
                         # restart of OSSEC server
                         if not os.path.isfile("lock"):
-                            filewrite = file("lock", "w")
+                            filewrite = open("lock", "w")
                             filewrite.write("lock")
                             filewrite.close()
 
                         # strip identifier
                         data = data.replace(
-                            "BDSOSSEC*", "").replace("BDSOSSEC", "")
+                            "BDSOSSEC*", "").replace("BDSOSSEC", "").replace("{", "")
                         hostname = data
 
                         # pull the true IP, not the NATed one if they are using
@@ -164,11 +169,16 @@ class service(socketserver.BaseRequestHandler):
                         data = parse_client(hostname, ipaddr)
                         if data == 0:
                             data = parse_client(hostname, ipaddr)
-                        print("[*] Provisioned new key for hostname: %s with IP of: %s" %
-                              (hostname, ipaddr))
+
+                        if data == "star_issue":
+                            print("[*] Sending star issue to client to report.")
+
+                        else:
+                            print("[*] Provisioned new key for hostname: %s with IP of: %s" %
+                                 (hostname, ipaddr))
                         data = aescall(secret, data, "encrypt")
                         print("[*] Sending new key to %s: " % (ipaddr) + data)
-                        self.request.send(data)
+                        self.request.send(data.encode('utf-8'))
 
                 except Exception as e:
                     print(e)
@@ -183,8 +193,6 @@ class service(socketserver.BaseRequestHandler):
 
 # this waits 5 minutes to check if new ossec agents have been deployed, if
 # so it restarts the server
-
-
 def ossec_monitor():
     while 1:
         time.sleep(300)
