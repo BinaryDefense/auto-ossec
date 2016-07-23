@@ -2,28 +2,31 @@
 #
 # This is the ossec auto enrollment server daemon. This should be put under supervisor to ensure health and stability.
 #
-#
 # Works with Alienvault and Standlone OSSEC installs
 #
 # Will listen on port 9654 for an incoming challege
-#
 #
 import socketserver
 from threading import Thread
 import subprocess
 import sys
+import traceback
+import base64
+import time
+import socket
+import os
+
+# python2/3 compatibility
+try: import _thread as thread
+except ImportError: import thread
 
 # check python crypto library
 try:
     from Crypto.Cipher import AES
 
 except ImportError:
-    print(
-        "[!] ERROR: python-crypto not installed. Run 'apt-get install python-pycrypto pexpect' to fix.")
+    print("[!] ERROR: python-crypto not installed. Run 'apt-get install python-pycrypto pexpect' to fix.")
     sys.exit()
-
-import base64
-import _thread
 
 # check pexpect library
 try:
@@ -32,13 +35,8 @@ except ImportError:
     print("[!] ERROR: pexpect not installed. Run apt-get install pexpect to fix.")
     sys.exit()
 
-import time
-import socket
-import os
-
-
+# main service handler for auto_server
 class service(socketserver.BaseRequestHandler):
-
     def handle(self):
         # parse OSSEC hids client certificate
         def parse_client(hostname, ipaddr):
@@ -47,75 +45,82 @@ class service(socketserver.BaseRequestHandler):
             child.sendline("a")
             child.expect("for the new agent")
             child.sendline(hostname)
-            i = child.expect(
-                ['IP Address of the new agent', 'already present'])
-
+            i = child.expect(['IP Address of the new agent', 'already present'])
             # if we haven't already added the hostname
             if i == 0:
                 child.sendline(ipaddr)
-                i = child.expect(['for the new agent', 'Invalid IP'])
-                if i == 0:
-                    child.sendline("")
-                    for line in child:
-                        line = line.decode('utf-8')
-                        # pull id
-                        if "[" in line:
-                            id = line.replace(
-                                "[", "").replace("]", "").replace(":", "").rstrip()
+                child.expect("for the new agent")
+                child.sendline("")
+                for line in child:
+                    try: line = str(line, 'UTF-8')
+                    except TypeError: line = str(line) # python2 compatibility
+                    # pull id
+                    if "[" in line:
+                        id = line.replace("[", "").replace("]", "").replace(":", "").rstrip()
                         break
-                    child.expect("Confirm adding it?")
-                    child.sendline("y")
-                    child.sendline("")
-                    child.sendline("q")
-                    child.close()
-                    child = pexpect.spawn(
-                        "/var/ossec/bin/manage_agents -e %s" % (id))
-                    for line in child:
-                        key = line.rstrip()
 
-                    return key
+                child.expect("Confirm adding it?")
+                child.sendline("y")
+                child.sendline("q")
+                child.close()
+                child = pexpect.spawn("/var/ossec/bin/manage_agents -e %s" % (id))
+                for line in child: key = line.rstrip() # actual key export
+                # when no agents are there and one is removed - the agent wont be added properly right away - need to go through the addition again - appears to be an ossec manage bug - going through everything again appears to solve this
+                if "Invalid ID" in key:
+                    return 0
+                return key
 
             # if we have a duplicate hostname
-            if i == 1:
+            else:
                 child.close()
                 child = pexpect.spawn("/var/ossec/bin/manage_agents -l")
                 for line in child:
-                    line = line.decode('utf-8').rstrip()
+                    try: line = str(line, 'UTF-8').rstrip()
+                    except TypeError: line = str(line).rstrip() # python 2 and 3 compatibility
                     if hostname in line:
-                        id = line.split(",")[0].replace(
-                            "ID: ", "").replace("   ", "").rstrip()
+                        remove_id = line.split(",")[0].replace("ID: ", "").replace("   ", "").rstrip()
                         break
                 child.close()
-                subprocess.Popen("/var/ossec/bin/manage_agents -r %s" %
-                                 (id), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
+                subprocess.Popen("/var/ossec/bin/manage_agents -r %s" % (remove_id), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
                 return 0
+
+        def decryptaes(cipher, data, padding):
+            result = str(cipher.decrypt(base64.b64decode(data)), 'UTF-8').rstrip(padding)
+            return result
+
+        def decryptaes_py2(cipher, data, padding):
+            result = cipher.decrypt(base64.b64decode(data)).rstrip(padding)
+            return result
+
+        def encryptaes(cipher, data, padding, blocksize):
+            # one-liner to sufficiently pad the text to be encrypted
+            pad = lambda s: s + (blocksize - len(s) % blocksize) * padding
+            try: data1 = str(data, 'UTF-8') #print('d1', data1)
+            except TypeError: data1 = str(data)
+            data2 = pad(data1) #; print('d2', data2)
+            data3 = cipher.encrypt(data2) #; print('d3', data3, type(data3))
+            result = base64.b64encode(data3)
+            return result
 
         # main AES encrypt and decrypt function with 32 block size padding
         def aescall(secret, data, format):
-
             # padding and block size
             PADDING = '{'
             BLOCK_SIZE = 32
 
-            # one-liner to sufficiently pad the text to be encrypted
-            pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * PADDING
-
             # random value here to randomize builds
             a = 50 * 5
 
-            # one-liners to encrypt/encode and decrypt/decode a string
-            # encrypt with AES, encode with base64
-            EncodeAES = lambda c, s: bytes(base64.b64encode(c.encrypt(pad(s))))
-            DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)) # , 'utf-8')
+            # generate the cipher
             cipher = AES.new(secret)
 
             if format == "encrypt":
-                aes = EncodeAES(cipher, data)
-                return str(aes)
+                aes = encryptaes(cipher, data, PADDING, BLOCK_SIZE)
+                return aes
 
             if format == "decrypt":
-                aes = DecodeAES(cipher, data)
-                aes = aes.decode('utf-8')
+                try: aes = decryptaes(cipher, data, PADDING)
+                except TypeError: aes = decryptaes_py2(cipher, data, PADDING)
                 return str(aes)
 
         # recommend changing this - if you do, change auto_ossec.py as well - -
@@ -131,12 +136,9 @@ class service(socketserver.BaseRequestHandler):
                     # if this section clears -we know that it is a legit
                     # request, has been decrypted and we're ready to rock
                     if "BDSOSSEC" in data:
-
                         # if we are using star IP addresses
-                        if "BDSOSSEC*" in data:
-                            star = 1
-                        else:
-                            star = 0
+                        if "BDSOSSEC*" in data: star = 1
+                        else: star = 0
 
                         # write a lock file to check later on with our threaded
                         # process to restart OSSEC if needed every 10 minutes -
@@ -149,31 +151,30 @@ class service(socketserver.BaseRequestHandler):
 
                         # strip identifier
                         data = data.replace(
-                            "BDSOSSEC*", "").replace("BDSOSSEC", "").replace("{", "")
+                            "BDSOSSEC*", "").replace("BDSOSSEC", "")
                         hostname = data
 
-                        # pull the true IP, not the NATed one if they are using
-                        # VMWare
-                        if star == 0:
-                            ipaddr = self.client_address[0]
-                        else:
-                            ipaddr = "*"
+                        # pull the true IP, not the NATed one if they are using VMWare
+                        if star == 0: ipaddr = self.client_address[0]
+                        else: ipaddr = "0.0.0.0/0"
 
-                        if ipaddr == "*": ipaddr = ("0.0.0.0/0")
                         # here if the hostname was already used, we need to
                         # remove it and call it again
-                        data = parse_client(hostname, ipaddr)
-                        if data == 0:
-                            data = parse_client(hostname, ipaddr)
-
-                        print("[*] Provisioned new key for hostname: %s with IP of: %s" %
-                             (hostname, ipaddr))
-                        data = aescall(secret, data, "encrypt")
-                        print("[*] Sending new key to %s: " % (ipaddr) + data)
-                        self.request.send(data.encode('utf-8'))
+                        ossec_key = parse_client(hostname, ipaddr)
+                        if ossec_key == 0:
+                            ossec_key = parse_client(hostname, ipaddr)
+                            # run through again
+                            if ossec_key == 0: ossec_key = parse_client(hostname, ipaddr)
+                        print("[*] Provisioned new key for hostname: %s with IP of: %s" % (hostname, ipaddr))
+                        ossec_key_crypt = aescall(secret, ossec_key, "encrypt")
+                        try: ossec_key_crypt = str(ossec_key_crypt, 'UTF-8')
+                        except TypeError: ossec_key_crypt = str(ossec_key_crypt)
+                        print("[*] Sending new key to %s: " % (hostname) + str(ossec_key))
+                        self.request.send(ossec_key_crypt.encode('UTF-8'))
 
                 except Exception as e:
                     print(e)
+                    traceback.print_exc(file=sys.stdout)
                     pass
 
         except Exception as e:
@@ -195,23 +196,23 @@ def ossec_monitor():
             subprocess.Popen("service ossec restart", stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, shell=True).wait()
 
-
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
 print("[*] The auto enrollment OSSEC Server is now listening on 9654")
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 # set is so that when we cancel out we can reuse port
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-# bind to all interfaces on port 10900
 
+# bind to all interfaces on port 10900
 ThreadedTCPServer.allow_reuse_address = True
 t = ThreadedTCPServer(('', 9654), service)
+
 # start the server and listen forever
 try:
     # start a threaded counter
-    _thread.start_new_thread(ossec_monitor, ())
-
+    thread.start_new_thread(ossec_monitor, ())
     t.serve_forever()
 
 except KeyboardInterrupt:

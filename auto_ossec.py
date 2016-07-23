@@ -19,14 +19,14 @@ import subprocess
 import time
 try: import urllib.request as urllib
 except: import urllib
+import traceback
 
 # try to import python-crypto
 try:
     from Crypto.Cipher import AES
 
 except ImportError as e:
-    print (
-        "[!] You need python-crypto in order for this module to work. If this is Ubuntu/Redhat - package name is python-crypto")
+    print ("[!] You need python-crypto in order for this module to work. If this is Ubuntu/Redhat - package name is python-crypto")
     print(e)
     sys.exit()
 
@@ -39,8 +39,7 @@ if platform.system() == "Windows":
     installer = "Windows"
 
 if installer == "":
-    print (
-        "[!] Unable to determine operating system. Only supports Linux and Windows. Exiting..")
+    print ("[!] Unable to determine operating system. Only supports Linux and Windows. Exiting..")
     sys.exit()
 
 
@@ -53,15 +52,13 @@ version_name = ""
 try:
     host = sys.argv[1]
     try: 
-        test = sys.argv[2]
-        if "*" in sys.argv[2]: star = sys.argv[2]
+        if "0.0.0.0/0" in sys.argv[2]: star = sys.argv[2]
         else: autoinstall = sys.argv[2]
 
     except: pass
 
     try: 
-        test = sys.argv[3]
-        if "*" in sys.argv[3]: star = sys.argv[3]
+        if "0.0.0.0/0" in sys.argv[3]: star = sys.argv[3]
         else: autoinstall = sys.argv[3]
 
     except: pass
@@ -74,17 +71,17 @@ Written by: The BDS Crew: Dave Kennedy, Charles Yost, Jimmy Byrd, Jason Ashton, 
 
 In order for this to work, you need to point auto_ossec.exe to the OSSEC server that is listening. Note that default port is 9654 but this can be changed in the source.
 
-Note that if you specify optional *, this will place a * for the IP address in the config and allow any IP address (for dynamic IP addresses).
+Note that if you specify optional 0.0.0.0/0, this will place a star for the IP address in the config and allow any IP address (for dynamic IP addresses).
 
-Also note if you specify url=<site> at the end, this is for Linux only, it will automatically download and install OSSEC for you and configure it based on the server-ip. You do not need to do a * before
+Also note if you specify url=<site> at the end, this is for Linux only, it will automatically download and install OSSEC for you and configure it based on the server-ip. You do not need to do a 0.0.0.0/0 before
 
-Example: auto_ossec.exe/.bin 192.168.5.5 * url=https://bintray.com/etc/etc/ossec-hids.tar.gz
+Example: auto_ossec.exe/.bin 192.168.5.5 0.0.0.0/0 url=https://bintray.com/etc/etc/ossec-hids.tar.gz
 Example2: auto_ossec.bin 192.168.5.5 url=https://somewebsite.com/ossec-hids-2.8.3.tar.gz
-Usage: auto_ossec.exe <server_ip> <optional: *> <optional: url>
+Usage: auto_ossec.exe <server_ip> <optional: 0.0.0.0/0> <optional: url>
 
 Example URL: https://bintray.com/artifact/download/ossec/ossec-hids/ossec-hids-2.8.3.tar.gz
 
-		""")
+        """)
     sys.exit()
 
 # url for OSSEC HERE
@@ -274,22 +271,23 @@ def aescall(secret, data, format):
     a = 50 * 5
 
     # one-liners to encrypt/encode and decrypt/decode a string
-    EncodeAES = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
-    DecodeAES = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
+    encryptaes = lambda c, s: base64.b64encode(c.encrypt(pad(s)))
+    decryptaes = lambda c, e: str(c.decrypt(base64.b64decode(e)), 'UTF-8').rstrip(PADDING)
+
+    decryptaes_py2 = lambda c, e: c.decrypt(base64.b64decode(e)).rstrip(PADDING)
 
     cipher = AES.new(secret)
 
     if format == "encrypt":
-        aes = EncodeAES(cipher, data)
-        return str(aes)
+        aes = encryptaes(cipher, data)
+        return aes
 
     if format == "decrypt":
-        aes = DecodeAES(cipher, data)
+        try: aes = decryptaes(cipher, data)
+        except TypeError: aes = decryptaes_py2(cipher, data)
         return str(aes)
 
 # this will grab the hostname and ip address and return it
-
-
 def grab_info():
     try:
         hostname = socket.gethostname()
@@ -314,8 +312,7 @@ try:
             break
 
         except Exception:
-            print (
-                "[!] Unable to connect to destination server. Re-trying in 10 seconds.")
+            print ("[!] Unable to connect to destination server. Re-trying in 10 seconds.")
             time.sleep(10)
             pass
 
@@ -324,45 +321,39 @@ try:
     data = grab_info()
 
     # encrypt the data
-    if star == "*":
-        data = "BDSOSSEC*" + data.rstrip()
-    else:
-        data = "BDSOSSEC" + data.rstrip()
+    if star == "0.0.0.0/0": data = "BDSOSSEC*" + data.rstrip()
+    else: data = "BDSOSSEC" + data.rstrip()
     data = aescall(secret, data, "encrypt")
-    print (
-        "[*] Pulled hostname and IP, encrypted data, and now sending to server.")
+    print ("[*] Pulled hostname and IP, encrypted data, and now sending to server.")
     s.send(data)
     data = s.recv(size)
     # this is our ossec key
-    print (
-        "[*] We received our new pairing key for OSSEC, closing server connection.")
+    print ("[*] We received our new pairing key for OSSEC, closing server connection.")
     data = aescall(secret, data, "decrypt")
     # close socket
     s.close()
 
     # path variables for OSSEC
-    if os.path.isdir("C:\\Program Files (x86)\\ossec-agent"):
-        path = "C:\\Program Files (x86)\\ossec-agent"
-    if os.path.isdir("C:\\Program Files\\ossec-agent"):
-        path = "C:\\Program Files\\ossec-agent"
-    if os.path.isdir("/var/ossec/"):
-        path = "/var/ossec/"
-    if path == "":
-        sys.exit()
+    if os.path.isdir("C:\\Program Files (x86)\\ossec-agent"): path = "C:\\Program Files (x86)\\ossec-agent"
+    if os.path.isdir("C:\\Program Files\\ossec-agent"): path = "C:\\Program Files\\ossec-agent"
+    if os.path.isdir("/var/ossec/"): path = "/var/ossec/"
+    if path == "": sys.exit()
     print ("[*] Removing any old keys.")
     os.chdir(path)
 
     if installer == "Windows":
-        if os.path.isfile("client.keys"):
-            os.remove("client.keys")
+        if os.path.isfile("client.keys"): os.remove("client.keys")
         # import the key with the key presented from the server daemon
         filewrite = open(path + "\\client.keys", "w")
 
     if installer == "Linux":
-        if os.path.isfile(path + "/etc/client.keys"):
-            os.remove("etc/client.keys")
+        if os.path.isfile(path + "/etc/client.keys"): os.remove("etc/client.keys")
         filewrite = open(path + "/etc/client.keys", "w")
+
     data = base64.b64decode(data)
+    # python 2 to 3 compatibility
+    try: data = str(data, 'UTF-8')
+    except TypeError: data = str(data)
     filewrite.write(data)
     filewrite.close()
     print ("[*] Successfully imported the new pairing key.")
@@ -371,10 +362,9 @@ try:
     if installer == "Windows":
         subprocess.Popen('net stop "OSSEC HIDS"', stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True).wait()
-
+    # Linux and OSX
     if installer == "Linux":
-        subprocess.Popen("/var/ossec/bin/ossec-control stop", stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, shell=True).wait()
+        subprocess.Popen("/var/ossec/bin/ossec-control stop", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
 
     # make sure we modify the ossec.conf
     if installer == "Windows":
@@ -388,7 +378,7 @@ try:
             print("[!] Unable to find the ossec.conf file in: " + path + "\\ossec.conf")
             print("[!] Please install OSSEC first before running any of this.")
             sys.exit()
-            
+
     # start the service
     if installer == "Windows":
         subprocess.Popen('net start "OSSEC HIDS"', stdout=subprocess.PIPE,
@@ -403,4 +393,7 @@ try:
 except KeyboardInterrupt:
     print ("Sounds good.. Aborting Auto-OSSEC...")
     sys.exit()
-except Exception as error: print ("[*] Something did not complete. Does this system have Internet access?")
+
+except Exception as error:
+    print ("[*] Something did not complete. Does this system have Internet access?")
+    print(traceback.print_exc(file=sys.stdout))
