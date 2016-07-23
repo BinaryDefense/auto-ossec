@@ -1,7 +1,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Binary Defense Systems Auto-Enroll for OSSEC
 Written by: David Kennedy - BDS
-Supported Systems: Linux, Windows
+Supported Systems: Linux, OS X, Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The auto ossec enrollment will automatically provision OSSEC agents for both Linux and Windows. This is accomplished through a customized protocol
@@ -12,7 +12,7 @@ Descriptions:
 
 auto_server.py - this file contains the server to house the protocol - the port needed for this is 9654. The agents will communicate with the agents to this server script that is running. This server script should be placed in an automatic init script and through watchdog in order to ensure its always running. This script needs to be placed on the OSSEC server itself.
 
-auto_ossec.exe and auto_ossec.py - auto_ossec.exe is to run on Windows, and auto_ossec.py to run on Linux. When running the tool you will need to issue auto_ossec.exe <ip_address_of_auto_server> - this will be the IP address of the server itself.
+auto_ossec.exe and auto_ossec.py - auto_ossec.exe is to run on Windows, and auto_ossec.py to run on Linux and OS X. When running the tool you will need to issue auto_ossec.exe <ip_address_of_auto_server> - this will be the IP address of the server itself.
 
 auto_ossec.bin - precompiled for Linux with all libraries bundies in (including python-crypto)
 
