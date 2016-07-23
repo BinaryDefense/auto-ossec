@@ -32,8 +32,11 @@ except ImportError as e:
 
 # check platform specific installs
 installer = ""
-if platform.system() == "Linux" or platform.system() == "Darwin":
+if platform.system() == "Linux": 
     installer = "Linux"
+
+if platform.system() == "Darwin":
+    installer = "Darwin"
 
 if platform.system() == "Windows":
     installer = "Windows"
@@ -254,7 +257,7 @@ def _installossec(serverip,version_name):
     subprocess.Popen("rm -rf /tmp/%s" % (version_name), shell=True).wait()
 
 # this is the auto installation process here
-if installer == "Linux":
+if installer in "Linux|Darwin":
     if "url=" in autoinstall:
         print("[*] Automatically installing OSSEC on Linux for you with version: " + (version_name))
         _download_ossec(url)
@@ -346,7 +349,7 @@ try:
         # import the key with the key presented from the server daemon
         filewrite = open(path + "\\client.keys", "w")
 
-    if installer == "Linux":
+    if installer in "Linux|Darwin":
         if os.path.isfile(path + "/etc/client.keys"): os.remove("etc/client.keys")
         filewrite = open(path + "/etc/client.keys", "w")
 
@@ -363,7 +366,7 @@ try:
         subprocess.Popen('net stop "OSSEC HIDS"', stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True).wait()
     # Linux and OSX
-    if installer == "Linux":
+    if installer in "Linux|Darwin":
         subprocess.Popen("/var/ossec/bin/ossec-control stop", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
 
     # make sure we modify the ossec.conf
@@ -384,7 +387,7 @@ try:
         subprocess.Popen('net start "OSSEC HIDS"', stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True).wait()
 
-    if installer == "Linux":
+    if installer in "Linux|Darwin":
         subprocess.Popen("service ossec start", stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True).wait()
 

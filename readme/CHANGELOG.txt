@@ -4,6 +4,7 @@ version 1.5.4
 
 * fixed up python2 and python3 compatibility and going through encoding hell (appreciate the support somepublicgithubact)
 * fixed a bug that would cause ossec to not provision if running on a system that was a duplicate
+* better OSX breakout for darwin/linux
 
 ~~~~~~~~~~~~~~~~
 version 1.5.3
@@ -13,7 +14,7 @@ version 1.5.3
 * large rework for python2 and python3 compatibility
 * fixed star working on systems
 * changed service ossec stop to /var/ossec/bin/ossec-control stop
-* added OSX support
+* added OSX support (thanks branchnetconsulting)
 
 ~~~~~~~~~~~~~~~~
 version 1.5.2
