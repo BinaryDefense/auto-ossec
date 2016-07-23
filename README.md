@@ -72,6 +72,7 @@ This will be useful if your system changes IP addresses frequently (dynamic DNS)
 ### Supported Operating Systems
 
 Linux
+OS X
 Windows
 
 
