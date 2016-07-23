@@ -48,7 +48,7 @@ In order to automatically install Linux, run the following command as root/sudo:
 
 The server IP address is the IP address of your OSSEC server installation. The url=<site> specifies that you want to automatically install. You can also specify a wildcard for your hostname of the AGENT. To do this you can type:
 
-./auto_ossec.bin <server_ip> * url=https://bintray.com/artifact/download/ossec/ossec-hids/ossec-hids-2.8.3.tar.gz
+./auto_ossec.bin <server_ip> 0.0.0.0/0 url=https://bintray.com/artifact/download/ossec/ossec-hids/ossec-hids-2.8.3.tar.gz
 
 This will automatically install OSSEC through the Internet and specify a wildcard for the IP address of the agent. This is useful when installing agents on dynamic IP addresses.
 
@@ -64,9 +64,9 @@ For Windows, install OSSEC normally - since it is an MSI you should install this
 
 auto_ossec.exe <server_ip>
 
-This will automatically update your OSSEC config file with the server IP address and do the magic needed to pair them. You can also use a * (wildcard):
+This will automatically update your OSSEC config file with the server IP address and do the magic needed to pair them. You can also use a 0.0.0.0/0 (wildcard):
 
-auto_ossec.exe <server_ip> *
+auto_ossec.exe <server_ip> 0.0.0.0/0
 
 This will be useful if your system changes IP addresses frequently (dynamic DNS)
 
