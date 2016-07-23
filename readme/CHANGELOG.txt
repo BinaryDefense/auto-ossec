@@ -1,4 +1,10 @@
 ~~~~~~~~~~~~~~~~
+version 1.5.5
+~~~~~~~~~~~~~~~~
+
+* lock for restarting is now a global variable vs. file - better to do in memory than having to write to disk
+
+~~~~~~~~~~~~~~~~
 version 1.5.4
 ~~~~~~~~~~~~~~~~
 

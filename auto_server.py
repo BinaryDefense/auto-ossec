@@ -36,8 +36,8 @@ except ImportError:
     sys.exit()
 
 # global lock to restart ossec service
-global lock
-lock = 0
+global counter
+counter = 0
 
 # main service handler for auto_server
 class service(socketserver.BaseRequestHandler):
@@ -147,7 +147,8 @@ class service(socketserver.BaseRequestHandler):
                         # process to restart OSSEC if needed every 10 minutes -
                         # if lock variable is 1 is present then it will trigger a
                         # restart of OSSEC server
-                        lock = 1
+                        global counter
+                        counter = 1
 
                         # strip identifier
                         data = data.replace(
@@ -190,10 +191,11 @@ class service(socketserver.BaseRequestHandler):
 def ossec_monitor():
     while 1:
         time.sleep(300)
-        if lock == 1:
+        global counter
+        if counter == 1:
             print("[*] New OSSEC agent added - triggering restart of service to add..")
             subprocess.Popen("service ossec restart", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
-            lock = 0
+            counter = 0
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): pass
 
