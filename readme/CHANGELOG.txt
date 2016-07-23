@@ -1,8 +1,10 @@
 ~~~~~~~~~~~~~~~~
-version 1.5.5
+version 1.6
 ~~~~~~~~~~~~~~~~
 
+* add queue support for when large deployments occur - all memory based queue - tested on large deployment of 2000 - seems to work fine
 * lock for restarting is now a global variable vs. file - better to do in memory than having to write to disk
+* moved all the wxs stuff to the wxs directory including the ps1 directory
 
 ~~~~~~~~~~~~~~~~
 version 1.5.4

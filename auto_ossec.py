@@ -363,8 +363,7 @@ try:
     print ("[*] Stopping the OSSEC service, just in case its running.")
     # stop the service if it is
     if installer == "Windows":
-        subprocess.Popen('net stop "OSSEC HIDS"', stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, shell=True).wait()
+        subprocess.Popen('net stop "OSSEC HIDS"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
     # Linux and OSX
     if installer in "Linux|Darwin":
         subprocess.Popen("/var/ossec/bin/ossec-control stop", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
@@ -384,12 +383,10 @@ try:
 
     # start the service
     if installer == "Windows":
-        subprocess.Popen('net start "OSSEC HIDS"', stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, shell=True).wait()
+        subprocess.Popen('net start "OSSEC HIDS"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
 
     if installer in "Linux|Darwin":
-        subprocess.Popen("service ossec start", stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, shell=True).wait()
+        subprocess.Popen("service ossec start", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
 
     print ("[*] Finished. Started the OSSEC service. Auto Enrollment for OSSEC is now finished.")
 

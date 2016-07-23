@@ -1,7 +1,6 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Binary Defense Systems Auto-Enroll for OSSEC
 Written by: David Kennedy - BDS
-Version 1.5.1
 Supported Systems: Linux, Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -31,6 +31,7 @@ except ImportError:
 # check pexpect library
 try:
     import pexpect
+
 except ImportError:
     print("[!] ERROR: pexpect not installed. Run apt-get install pexpect to fix.")
     sys.exit()
@@ -38,6 +39,10 @@ except ImportError:
 # global lock to restart ossec service
 global counter
 counter = 0
+
+# global lock for queue
+global queue_lock
+queue_lock = 0
 
 # main service handler for auto_server
 class service(socketserver.BaseRequestHandler):
@@ -70,6 +75,7 @@ class service(socketserver.BaseRequestHandler):
                 child = pexpect.spawn("/var/ossec/bin/manage_agents -e %s" % (id))
                 for line in child: key = line.rstrip() # actual key export
                 # when no agents are there and one is removed - the agent wont be added properly right away - need to go through the addition again - appears to be an ossec manage bug - going through everything again appears to solve this
+                time.sleep(0.5)
                 if "Invalid ID" in str(key):
                     return 0
                 return key
@@ -85,7 +91,12 @@ class service(socketserver.BaseRequestHandler):
                         remove_id = line.split(",")[0].replace("ID: ", "").replace("   ", "").rstrip()
                         break
                 child.close()
-                subprocess.Popen("/var/ossec/bin/manage_agents -r %s" % (remove_id), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
+                time.sleep(0.5)
+                print(remove_id)
+                child = pexpect.spawn("/var/ossec/bin/manage_agents -r %s" % (remove_id)) #, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
+                child.interact()
+                child.close()
+                time.sleep(0.5)
                 return 0
 
         def decryptaes(cipher, data, padding):
@@ -151,28 +162,58 @@ class service(socketserver.BaseRequestHandler):
                         counter = 1
 
                         # strip identifier
-                        data = data.replace(
-                            "BDSOSSEC*", "").replace("BDSOSSEC", "")
+                        data = data.replace("BDSOSSEC*", "").replace("BDSOSSEC", "")
                         hostname = data
 
                         # pull the true IP, not the NATed one if they are using VMWare
                         if star == 0: ipaddr = self.client_address[0]
                         else: ipaddr = "0.0.0.0/0"
 
+                        # this will provision the key 
+                        def provision_key(hostname, ipaddr):
+                            ossec_key = parse_client(hostname, ipaddr)
+                            if ossec_key == 0:
+                                ossec_key = parse_client(hostname, ipaddr)
+                                # run through again for trouble ones - ossec bug looks like - but this is a decent workaround
+                                if ossec_key == 0: ossec_key = parse_client(hostname, ipaddr)
+
+                            print("[*] Provisioned new key for hostname: %s with IP of: %s" % (hostname, ipaddr))
+                            try: ossec_key = ossec_key.decode('UTF-8')
+                            except: ossec_key = str(ossec_key) # python2 compatibility
+                            ossec_key_crypt = aescall(secret, ossec_key, "encrypt")
+                            try: ossec_key_crypt = str(ossec_key_crypt, 'UTF-8')
+                            except TypeError: ossec_key_crypt = str(ossec_key_crypt)
+                            print("[*] Sending new key to %s: " % (hostname) + str(ossec_key))
+                            # if client disconnected dont crash everything
+                            try: self.request.send(ossec_key_crypt.encode('UTF-8'))
+                            except: pass
+                            time.sleep(1)
+
                         # here if the hostname was already used, we need to
                         # remove it and call it again
-                        ossec_key = parse_client(hostname, ipaddr)
-                        if ossec_key == 0:
-                            ossec_key = parse_client(hostname, ipaddr)
-                            # run through again
-                            if ossec_key == 0: ossec_key = parse_client(hostname, ipaddr)
-                        print("[*] Provisioned new key for hostname: %s with IP of: %s" % (hostname, ipaddr))
-                        ossec_key = ossec_key.decode('UTF-8')
-                        ossec_key_crypt = aescall(secret, ossec_key, "encrypt")
-                        try: ossec_key_crypt = str(ossec_key_crypt, 'UTF-8')
-                        except TypeError: ossec_key_crypt = str(ossec_key_crypt)
-                        print("[*] Sending new key to %s: " % (hostname) + str(ossec_key))
-                        self.request.send(ossec_key_crypt.encode('UTF-8'))
+                        global queue_lock
+
+                        # if our queue lock is 0
+                        if queue_lock == 0:
+                            # locking up the queue to process
+                            queue_lock = 1
+                            provision_key(hostname, ipaddr)
+                            time.sleep(0.2)
+                            queue_lock = 0
+
+                        # if we aren't ready to provision wait
+                        else:
+                            # we need to wait until its finished
+                            while 1:
+                                # sleep 5 seconds and wait for lock
+                                time.sleep(5)
+                                if queue_lock == 0:
+                                    print("Queue is now free, proceeding with current agent additions..")
+                                    queue_lock = 1
+                                    provision_key(hostname, ipaddr)
+                                    time.sleep(0.2)
+                                    queue_lock = 0
+                                    break
 
                 except Exception as e:
                     print(e)
@@ -193,9 +234,11 @@ def ossec_monitor():
         time.sleep(300)
         global counter
         if counter == 1:
-            print("[*] New OSSEC agent added - triggering restart of service to add..")
-            subprocess.Popen("service ossec restart", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
-            counter = 0
+            # if we dont have any new agents being added at the time
+            if queue_lock == 0:
+                print("[*] New OSSEC agent added - triggering restart of service to add..")
+                subprocess.Popen("service ossec restart", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
+                counter = 0
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): pass
 
