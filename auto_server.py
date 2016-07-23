@@ -94,7 +94,6 @@ class service(socketserver.BaseRequestHandler):
                 time.sleep(0.5)
                 print(remove_id)
                 child = pexpect.spawn("/var/ossec/bin/manage_agents -r %s" % (remove_id)) #, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
-                child.interact()
                 child.close()
                 time.sleep(0.5)
                 return 0
