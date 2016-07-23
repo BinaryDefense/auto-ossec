@@ -1,10 +1,26 @@
 #!/usr/bin/python
 #
-# This is the ossec auto enrollment server daemon. This should be put under supervisor to ensure health and stability.
+#                                    Auto-OSSEC Server
 #
-# Works with Alienvault and Standlone OSSEC installs
+#  This is the server piece to the client/server pair (ossec_client.py). Auto-OSSEC will create a protocol
+#  and allow automatic deployment of OSSEC keys through an enterprise. One of the biggest challenges with
+#  OSSEC is the key management pieces which auto-ossec tries to solve. When run, this will listen for comms
+#  with auto_ossec.py which is the OSSEC client and pass a key request to the client through an AES 
+#  encrypted tunnel. Once the exchange completes, auto_ossec will integrate the key and rewrite the conf
+#  file for you to incorporate the server IP address. View the README.md for usage and how to effecitvely
+#  use auto-ossec. This also works with AlienVault pairing.
 #
-# Will listen on port 9654 for an incoming challege
+#  Written by: Dave Kennedy and the Binary Defense Systems (BDS) Team
+#  Twitter: @HackingDave, @Binary_Defense
+#  Website: https://www.binarydefense.com 
+#
+#  Recommended: Place this python file under supervisor to ensure health, stability, and service starts.
+#
+#  Usage: python auto_sever.py  - This will spawn a port listening and wait for connections from auto_ossec.py
+#
+#  Will listen on port 9654 for an incoming challege
+#
+#  Python Crypto and Python Pexpect is required - apt-get install python-crypto python-pexpect
 #
 import socketserver
 from threading import Thread

@@ -1,13 +1,21 @@
 #!/usr/bin/python
 #
-# This is the initial release of the ossec_client.py which can be byte compiled into an exe. This will
-# connect to the ossec_auto.py daemon that will automatically issue a key in order to pair the OSSEC
-# HIDS.
+#                                    Auto-OSSEC Client
 #
-# Also works with AlienVault.
+#  This is the client piece to the client/server pair (ossec_server.py). Auto-OSSEC will create a protocol
+#  and allow automatic deployment of OSSEC keys through an enterprise. One of the biggest challenges with
+#  OSSEC is the key management pieces which auto-ossec tries to solve. When run, this will pair with the
+#  auto_server.py which has OSSEC server installed on it and request a key and pass it through an AES 
+#  encrypted tunnel. Once the exchange completes, auto_ossec will integrate the key and rewrite the conf
+#  file for you to incorporate the server IP address. View the README.md for usage and how to effecitvely
+#  use auto-ossec. This also works with AlienVault pairing.
 #
-# NOTE that you NEED to change the host = '' to the appropriate IP address of the OSSEC server and
-# where the ossec_auto.py daemon is running.
+#  Written by: Dave Kennedy and the Binary Defense Systems (BDS) Team
+#  Twitter: @HackingDave, @Binary_Defense
+#  Website: https://www.binarydefense.com 
+#
+#  Usage: python auto_ossec.py  - this will show you the flag options to pair. Read the README.md for more
+#  information.
 #
 
 import platform
