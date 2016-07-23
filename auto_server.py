@@ -35,6 +35,10 @@ except ImportError:
     print("[!] ERROR: pexpect not installed. Run apt-get install pexpect to fix.")
     sys.exit()
 
+# global lock to restart ossec service
+global lock
+lock = 0
+
 # main service handler for auto_server
 class service(socketserver.BaseRequestHandler):
     def handle(self):
@@ -66,7 +70,7 @@ class service(socketserver.BaseRequestHandler):
                 child = pexpect.spawn("/var/ossec/bin/manage_agents -e %s" % (id))
                 for line in child: key = line.rstrip() # actual key export
                 # when no agents are there and one is removed - the agent wont be added properly right away - need to go through the addition again - appears to be an ossec manage bug - going through everything again appears to solve this
-                if "Invalid ID" in key:
+                if "Invalid ID" in str(key):
                     return 0
                 return key
 
@@ -140,14 +144,10 @@ class service(socketserver.BaseRequestHandler):
                         if "BDSOSSEC*" in data: star = 1
                         else: star = 0
 
-                        # write a lock file to check later on with our threaded
                         # process to restart OSSEC if needed every 10 minutes -
-                        # if lock file is present then it will trigger a
+                        # if lock variable is 1 is present then it will trigger a
                         # restart of OSSEC server
-                        if not os.path.isfile("lock"):
-                            filewrite = open("lock", "w")
-                            filewrite.write("lock")
-                            filewrite.close()
+                        lock = 1
 
                         # strip identifier
                         data = data.replace(
@@ -166,6 +166,7 @@ class service(socketserver.BaseRequestHandler):
                             # run through again
                             if ossec_key == 0: ossec_key = parse_client(hostname, ipaddr)
                         print("[*] Provisioned new key for hostname: %s with IP of: %s" % (hostname, ipaddr))
+                        ossec_key = ossec_key.decode('UTF-8')
                         ossec_key_crypt = aescall(secret, ossec_key, "encrypt")
                         try: ossec_key_crypt = str(ossec_key_crypt, 'UTF-8')
                         except TypeError: ossec_key_crypt = str(ossec_key_crypt)
@@ -189,15 +190,12 @@ class service(socketserver.BaseRequestHandler):
 def ossec_monitor():
     while 1:
         time.sleep(300)
-        if os.path.isfile("lock"):
-            os.remove("lock")
-            print(
-                "[*] New OSSEC agent added - triggering restart of service to add..")
-            subprocess.Popen("service ossec restart", stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, shell=True).wait()
+        if lock == 1:
+            print("[*] New OSSEC agent added - triggering restart of service to add..")
+            subprocess.Popen("service ossec restart", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
+            lock = 0
 
-class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    pass
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): pass
 
 print("[*] The auto enrollment OSSEC Server is now listening on 9654")
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -215,5 +213,4 @@ try:
     thread.start_new_thread(ossec_monitor, ())
     t.serve_forever()
 
-except KeyboardInterrupt:
-    print("[*] Exiting the automatic enrollment OSSEC daemon")
+except KeyboardInterrupt: print("[*] Exiting the automatic enrollment OSSEC daemon")
