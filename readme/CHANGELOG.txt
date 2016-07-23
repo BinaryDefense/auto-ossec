@@ -5,6 +5,7 @@ version 1.5.4
 * fixed up python2 and python3 compatibility and going through encoding hell (appreciate the support somepublicgithubact)
 * fixed a bug that would cause ossec to not provision if running on a system that was a duplicate
 * better OSX breakout for darwin/linux
+* added auto_server.bin in case you need complied server
 
 ~~~~~~~~~~~~~~~~
 version 1.5.3
