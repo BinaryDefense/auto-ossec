@@ -1,12 +1,17 @@
 <?xml version='1.0' encoding='windows-1252'?>
+
+<?define UpgradeCode='C90A53AC-3ED3-46A7-B718-701F20C5C68D' ?>
+<?define ProductVersion='1.2.0' ?>
+<?define RTMVersion='1.0.0' ?>
+
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
     <Product
-        Id='CF0B24A8-1E99-4D5D-8DB4-005CE796448C'
+        Id='*'
         Language='1033'
         Manufacturer='Binary Defense Systems'
         Name='Auto OSSEC'
-        UpgradeCode='C90A53AC-3ED3-46A7-B718-701F20C5C68D'
-        Version='1.2.0.0'
+        UpgradeCode='$(var.UpgradeCode)'
+        Version='$(var.ProductVersion)'
     >
 
         <Package
