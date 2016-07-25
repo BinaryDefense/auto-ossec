@@ -24,33 +24,44 @@ If ([string]::IsNullOrEmpty(${Address})) {
 }
 
 $AddressParsed = $Null
-$AddressIsValid = [System.Net.IPAddress]::tryparse($Address,[ref] $AddressParsed)
+$AddressIsWildcard = (0 -Eq $Address.CompareTo('0.0.0.0/0'))
+$AddressIsValid = ($AddressIsWildcard -Or [System.Net.IPAddress]::tryparse($Address,[ref] $AddressParsed))
 If (-Not $AddressIsValid) {
-    Write-Host "FAIL: A Valid IP Address must be specified."
+    Write-Host "FAIL: A Valid IP Address or Wildcard (0.0.0.0/0) must be specified."
     Exit 2
 }
 
-Write-Host "MSI will be built for Address: ${Address}`n"
-
-Write-Host -NoNewLine "Locating WiX Toolset...   "
-If (Test-Path 'C:\Program Files\WiX Toolset v3.10\bin') {
-    $WiX_BinRoot = 'C:\Program Files\WiX Toolset v3.10\bin'
-} ElseIf (Test-Path 'C:\Program Files (x86)\WiX Toolset v3.10\bin') {
-    $WiX_BinRoot = 'C:\Program Files (x86)\WiX Toolset v3.10\bin'
+$OutputPrefix = "auto_ossec"
+$OutputExtension = "msi"
+If ($AddressIsWildcard) {
+    # Windows doesn't apperciate slashes in filenames.
+    $OutputName = "${OutputPrefix}-0.0.0.0.${OutputExtension}"
 } Else {
-    Write-Host "FAIL: Unable to locate WiX Toolset."
-    Exit 1
+    $OutputName = "${OutputPrefix}-${Address}.${OutputExtension}"
 }
-Write-Host "located."
+Write-Host "Creating MSI: ${OutputName}"
+If ($True) {
+    Write-Host -NoNewLine "    Locating WiX Toolset...   "
+    If (Test-Path 'C:\Program Files\WiX Toolset v3.10\bin') {
+        $WiX_BinRoot = 'C:\Program Files\WiX Toolset v3.10\bin'
+    } ElseIf (Test-Path 'C:\Program Files (x86)\WiX Toolset v3.10\bin') {
+        $WiX_BinRoot = 'C:\Program Files (x86)\WiX Toolset v3.10\bin'
+    } Else {
+        Write-Host "FAIL: Unable to locate WiX Toolset."
+        Exit 1
+    }
+    Write-Host "located."
 
-Write-Host -NoNewLine "Compiling...              "
-& "${WiX_BinRoot}\candle.exe" -dServerAddress="${Address}" .\auto_ossec.wxs | Out-Null
-Write-Host "compiled."
+    Write-Host -NoNewLine "    Compiling...              "
+    & "${WiX_BinRoot}\candle.exe" -dServerAddress="${Address}" .\auto_ossec.wxs | Out-Null
+    Write-Host "compiled."
 
-Write-Host -NoNewLine "Linking...                "
-& "${WiX_BinRoot}\light.exe" -spdb -out "auto_ossec-${Address}.msi" auto_ossec.wixobj | Out-Null
-Write-Host "linked."
+    Write-Host -NoNewLine "    Linking...                "
+    & "${WiX_BinRoot}\light.exe" -spdb -out "${OutputName}" auto_ossec.wixobj | Out-Null
+    Write-Host "linked."
 
-Write-Host -NoNewLine "Cleaning up...            "
-Remove-Item auto_ossec.wixobj | Out-Null
-Write-Host "cleaned up."
+    Write-Host -NoNewLine "    Cleaning up...            "
+    Remove-Item auto_ossec.wixobj | Out-Null
+    Write-Host "cleaned up."
+}
+Write-Host "created."
