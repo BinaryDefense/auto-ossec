@@ -6,7 +6,7 @@
     File Name      : Create-MsiForAutoOSSEC.ps1
     Author         : Binary Defense Systems
     Prerequisite   : WiX Toolset v3.10
-    Copyright 2015 - Binary Defense Systems
+    Copyright 2015 through 2016 to Binary Defense Systems, LLC
 .LINK
     WiX Toolset Can be found at:
     http://wixtoolset.org/
