@@ -44,11 +44,11 @@ If (Test-Path 'C:\Program Files\WiX Toolset v3.10\bin') {
 Write-Host "located."
 
 Write-Host -NoNewLine "Compiling...              "
-& "${WiX_BinRoot}\candle.exe" -dServerAddress="$Address" .\auto_ossec.wxs | Out-Null
+& "${WiX_BinRoot}\candle.exe" -dServerAddress="${Address}" .\auto_ossec.wxs | Out-Null
 Write-Host "compiled."
 
 Write-Host -NoNewLine "Linking...                "
-& "${WiX_BinRoot}\light.exe" -spdb -out auto_ossec.msi auto_ossec.wixobj | Out-Null
+& "${WiX_BinRoot}\light.exe" -spdb -out "auto_ossec-${Address}.msi" auto_ossec.wixobj | Out-Null
 Write-Host "linked."
 
 Write-Host -NoNewLine "Cleaning up...            "
