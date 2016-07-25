@@ -10,7 +10,7 @@
     >
 
         <Package
-            Description="Binary Defense Systems, Auto OSSEC"
+            Description='Binary Defense Systems, Auto OSSEC'
             Compressed='yes'
             Id='*'
             InstallerVersion='300'
@@ -18,9 +18,9 @@
             Platform='x86'
         />
 
-        <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
-        <Property Id="ARPNOREPAIR" Value="1" />
-        <Property Id="ARPNOMODIFY" Value="1" />
+        <Property Id='MSIUSEREALADMINDETECTION' Value='1' />
+        <Property Id='ARPNOREPAIR' Value='1' />
+        <Property Id='ARPNOMODIFY' Value='1' />
 
         <Media
             Cabinet='AutoOSSEC.cab'
@@ -48,21 +48,21 @@
             </Directory>
         </Directory>
 
-        <Feature Id='Complete' Level="1">
+        <Feature Id='Complete' Level='1'>
             <ComponentRef Id='COMPAUTOOSSEC' />
         </Feature>
 
         <CustomAction
-            Id="EXECAUTOOSSEC"
-            Execute="deferred"
-            Impersonate="no"
-            ExeCommand="$(var.ServerAddress)"
-            FileKey="AUTOOSSECBINARY"
-            Return="check"
+            Id='EXECAUTOOSSEC'
+            Execute='deferred'
+            Impersonate='no'
+            ExeCommand='$(var.ServerAddress)'
+            FileKey='AUTOOSSECBINARY'
+            Return='check'
         />
 
         <InstallExecuteSequence>
-            <Custom Action="EXECAUTOOSSEC" After="InstallExecute" />
+            <Custom Action='EXECAUTOOSSEC' After='InstallExecute' />
         </InstallExecuteSequence>
     </Product>
 </Wix>
