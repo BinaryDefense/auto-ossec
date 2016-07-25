@@ -32,12 +32,23 @@ If (-Not $AddressIsValid) {
 
 Write-Host "MSI will be built for Address: ${Address}`n"
 
+Write-Host -NoNewLine "Locating WiX Toolset...   "
+If (Test-Path 'C:\Program Files\WiX Toolset v3.10\bin') {
+    $WiX_BinRoot = 'C:\Program Files\WiX Toolset v3.10\bin'
+} ElseIf (Test-Path 'C:\Program Files (x86)\WiX Toolset v3.10\bin') {
+    $WiX_BinRoot = 'C:\Program Files (x86)\WiX Toolset v3.10\bin'
+} Else {
+    Write-Host "FAIL: Unable to locate WiX Toolset."
+    Exit 1
+}
+Write-Host "located."
+
 Write-Host -NoNewLine "Compiling...              "
-& 'C:\Program Files (x86)\WiX Toolset v3.10\bin\candle.exe' -dServerAddress="$Address" .\auto_ossec.wxs | Out-Null
+& "${WiX_BinRoot}\candle.exe" -dServerAddress="$Address" .\auto_ossec.wxs | Out-Null
 Write-Host "compiled."
 
 Write-Host -NoNewLine "Linking...                "
-& 'C:\Program Files (x86)\WiX Toolset v3.10\bin\light.exe' -spdb -out auto_ossec.msi auto_ossec.wixobj | Out-Null
+& "${WiX_BinRoot}\light.exe" -spdb -out auto_ossec.msi auto_ossec.wixobj | Out-Null
 Write-Host "linked."
 
 Write-Host -NoNewLine "Cleaning up...            "
