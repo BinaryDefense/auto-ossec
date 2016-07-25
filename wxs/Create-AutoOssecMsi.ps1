@@ -12,11 +12,16 @@
     http://wixtoolset.org/
 #>
 
-$addr = Read-Host 'What is the IP Address where you will be running auto_server.py?'
+[CmdletBinding()]
+Param(
+    [Parameter(Mandatory=$False, Position=1)]
+    [string]$Address = $(Read-Host "What is the IP Address where you will be running auto_server.py?")
+)
+
 Write-Host "MSI will be built for Address: ${Address}`n"
 
 Write-Host -NoNewLine "Compiling...              "
-& 'C:\Program Files (x86)\WiX Toolset v3.10\bin\candle.exe' -dServerAddress="$addr" .\auto_ossec.wxs | Out-Null
+& 'C:\Program Files (x86)\WiX Toolset v3.10\bin\candle.exe' -dServerAddress="$Address" .\auto_ossec.wxs | Out-Null
 Write-Host "compiled."
 
 Write-Host -NoNewLine "Linking...                "
