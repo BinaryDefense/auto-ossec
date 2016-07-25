@@ -18,6 +18,18 @@ Param(
     [string]$Address = $(Read-Host "What is the IP Address where you will be running auto_server.py?")
 )
 
+If ([string]::IsNullOrEmpty(${Address})) {
+    Write-Host "FAIL: An IP Address must be specified."
+    Exit 3
+}
+
+$AddressParsed = $Null
+$AddressIsValid = [System.Net.IPAddress]::tryparse($Address,[ref] $AddressParsed)
+If (-Not $AddressIsValid) {
+    Write-Host "FAIL: A Valid IP Address must be specified."
+    Exit 2
+}
+
 Write-Host "MSI will be built for Address: ${Address}`n"
 
 Write-Host -NoNewLine "Compiling...              "
