@@ -33,6 +33,24 @@
             Id='1'
         />
 
+        <Upgrade Id='$(var.UpgradeCode)'>
+            <UpgradeVersion
+                Minimum='$(var.ProductVersion)'
+                IncludeMinimum='no'
+                OnlyDetect='yes'
+                Language='1033'
+                Property='NEWPRODUCTFOUND'
+            />
+            <UpgradeVersion
+                Minimum='$(var.RTMVersion)'
+                IncludeMinimum='yes'
+                Maximum='$(var.ProductVersion)'
+                IncludeMaximum='no'
+                Language='1033'
+                Property='UPGRADEFOUND'
+            />
+        </Upgrade>
+
         <Directory Id='TARGETDIR' Name='SourceDir'>
             <Directory Id='ProgramFilesFolder'>
                 <Directory Id='COMPANYDIRECTORY' Name='BinaryDefense'>
@@ -67,7 +85,10 @@
         />
 
         <InstallExecuteSequence>
-            <Custom Action='EXECAUTOOSSEC' After='InstallExecute' />
+            <RemoveExistingProducts After='InstallFinalize' />
+            <Custom Action='EXECAUTOOSSEC' After='InstallExecute'>
+                <![CDATA[NOT Installed AND NOT WIX_UPGRADE_DETECTED]]>
+            </Custom>
         </InstallExecuteSequence>
     </Product>
 </Wix>
