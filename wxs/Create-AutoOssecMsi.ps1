@@ -13,12 +13,16 @@
 #>
 
 $addr = Read-Host 'What is the IP Address where you will be running auto_server.py?'
+Write-Host "MSI will be built for Address: ${Address}`n"
 
-Write-Host 'Compiling...'
-& 'C:\Program Files (x86)\WiX Toolset v3.10\bin\candle.exe' -dServerAddress="$addr" .\auto_ossec.wxs
+Write-Host -NoNewLine "Compiling...              "
+& 'C:\Program Files (x86)\WiX Toolset v3.10\bin\candle.exe' -dServerAddress="$addr" .\auto_ossec.wxs | Out-Null
+Write-Host "compiled."
 
-Write-Host 'Linking...'
-& 'C:\Program Files (x86)\WiX Toolset v3.10\bin\light.exe' -spdb -out auto_ossec.msi auto_ossec.wixobj
+Write-Host -NoNewLine "Linking...                "
+& 'C:\Program Files (x86)\WiX Toolset v3.10\bin\light.exe' -spdb -out auto_ossec.msi auto_ossec.wixobj | Out-Null
+Write-Host "linked."
 
-Write-Host 'Cleaning up...'
-Remove-Item auto_ossec.wixobj
+Write-Host -NoNewLine "Cleaning up...            "
+Remove-Item auto_ossec.wixobj | Out-Null
+Write-Host "cleaned up."
