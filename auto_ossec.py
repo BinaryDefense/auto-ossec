@@ -100,6 +100,14 @@ if "url=" in autoinstall:
     url = autoinstall.replace("url=", "").replace('"', "", 2)
     version_name = url.split("/ossec-hids/")[1].replace(".tar.gz", "")
 
+if "path=" in autoinstall:
+    path = autoinstall.replace("path=", "").replace('"', "", 2)
+    if "/" in path:
+        _, path_filename = os.path.split(path)
+    else:
+        path_filename = path
+    version_name = path_filename.replace(".tar.gz", "")
+
 # download ossec
 def _download_ossec(url):
     ossec_file = urllib.urlopen(url).read()
@@ -270,6 +278,13 @@ if installer in "Linux|Darwin":
         print("[*] Automatically installing OSSEC on Linux for you with version: " + (version_name))
         _download_ossec(url)
         _installossec(host,version_name)
+
+    if "path=" in autoinstall:
+        print("[*] Automatically installing OSSEC on Linux for you with version: " + (version_name))
+        from shutil import copyfile
+        copyfile(path, '/tmp/ossec.tar.gz')
+        _installossec(host,version_name)
+
 
 def aescall(secret, data, format):
     # padding and block size
