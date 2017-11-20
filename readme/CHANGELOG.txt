@@ -7,6 +7,8 @@ version 1.7
 * removed print ID - was notification that wasn't needed
 * added child.timeout = 300 for long manage_agent load times
 * added a check for import SocketServer vs socketserver 2/3 compatibility
+* fix padding issue on base64 - due to not giving enough time delay in between manage_agents when deleting
+* added upx for auto_server.bin - smaller binary
 
 ~~~~~~~~~~~~~~~~
 version 1.6

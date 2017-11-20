@@ -69,7 +69,7 @@ class service(socketserver.BaseRequestHandler):
         # parse OSSEC hids client certificate
         def parse_client(hostname, ipaddr):
             child = pexpect.spawn("/var/ossec/bin/manage_agents")
-            child.timeout=300 
+            child.timeout=300
             child.expect("Choose your action")
             child.sendline("a")
             child.expect("for the new agent")
@@ -97,8 +97,7 @@ class service(socketserver.BaseRequestHandler):
                 for line in child: key = line.rstrip() # actual key export
                 # when no agents are there and one is removed - the agent wont be added properly right away - need to go through the addition again - appears to be an ossec manage bug - going through everything again appears to solve this
                 time.sleep(0.5)
-                if "Invalid ID" in str(key):
-                    return 0
+                if "Invalid ID" in str(key): return 0
                 return key
 
             # if we have a duplicate hostname
@@ -114,10 +113,12 @@ class service(socketserver.BaseRequestHandler):
                         break
                 child.close()
                 time.sleep(0.5)
-                child = pexpect.spawn("/var/ossec/bin/manage_agents -r %s" % (remove_id)) 
-                child.timeout=300 
+                child = pexpect.spawn("/var/ossec/bin/manage_agents -r %s" % (remove_id))
+                child.timeout=300
+                child.expect("manage_agents: Exiting.")
+                time.sleep(2)
                 child.close()
-                time.sleep(0.5)
+                time.sleep(1)
                 return 0
 
         def decryptaes(cipher, data, padding):
@@ -196,13 +197,14 @@ class service(socketserver.BaseRequestHandler):
                             if ossec_key == 0:
                                 ossec_key = parse_client(hostname, ipaddr)
                                 # run through again for trouble ones - ossec bug looks like - but this is a decent workaround
-                                if ossec_key == 0: ossec_key = parse_client(hostname, ipaddr)
+                                if ossec_key == 0:
+                                    ossec_key = parse_client(hostname, ipaddr)
 
                             print("[*] Provisioned new key for hostname: %s with IP of: %s" % (hostname, ipaddr))
                             try: ossec_key = ossec_key.decode('UTF-8')
                             except: ossec_key = str(ossec_key) # python2 compatibility
                             ossec_key_crypt = aescall(secret, ossec_key, "encrypt")
-                            try: ossec_key_crypt = str(ossec_key_crypt, 'UTF-8')
+                            try: ossec_key_crypt = str(ossec_key_crypt, 'UTF-8') 
                             except TypeError: ossec_key_crypt = str(ossec_key_crypt)
                             print("[*] Sending new key to %s: " % (hostname) + str(ossec_key))
                             # if client disconnected dont crash everything
