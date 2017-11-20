@@ -92,8 +92,6 @@ If you want to compile your own auto_ossec.py (instead of the auto_ossec.exe pro
 6. python -m easy_install pycrypto
 7. Unzip pyinstaller, navigate to the directory and type python pyinstaller --onefile auto_ossec.py - this will generate a binary under auto_ossec\dist
 
-### Supported Operating Systems
+## Supported Operating Systems
 
-Linux
-OS X
-Windows
+Linux, OS X, Windows
