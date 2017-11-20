@@ -22,7 +22,10 @@
 #
 #  Python Crypto and Python Pexpect is required - apt-get install python-crypto python-pexpect
 #
-import socketserver
+
+# needed for python2/3 compatibility
+try: import SocketServer as socketserver
+except ImportError: import socketserver
 from threading import Thread
 import subprocess
 import sys

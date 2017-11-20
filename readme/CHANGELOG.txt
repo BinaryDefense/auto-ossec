@@ -6,6 +6,7 @@ version 1.7
 * update README.md
 * removed print ID - was notification that wasn't needed
 * added child.timeout = 300 for long manage_agent load times
+* added a check for import SocketServer vs socketserver 2/3 compatibility
 
 ~~~~~~~~~~~~~~~~
 version 1.6
