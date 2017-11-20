@@ -9,6 +9,7 @@ version 1.7
 * added a check for import SocketServer vs socketserver 2/3 compatibility
 * fix padding issue on base64 - due to not giving enough time delay in between manage_agents when deleting
 * added upx for auto_server.bin - smaller binary
+* replaced auto_ossec.exe with a x86 binary should be backwards compatible now
 
 ~~~~~~~~~~~~~~~~
 version 1.6

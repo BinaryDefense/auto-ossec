@@ -44,7 +44,7 @@ try:
     from Crypto.Cipher import AES
 
 except ImportError:
-    print("[!] ERROR: python-crypto not installed. Run 'apt-get install python-pycrypto pexpect' to fix.")
+    print("[!] ERROR: pycryptodome not installed. Run 'python3 -m install pycrypto' to fix.")
     sys.exit()
 
 # check pexpect library
@@ -52,7 +52,7 @@ try:
     import pexpect
 
 except ImportError:
-    print("[!] ERROR: pexpect not installed. Run apt-get install pexpect to fix.")
+    print("[!] ERROR: pexpect not installed. Run 'python3 -m install pexpect' to fix.")
     sys.exit()
 
 # global lock to restart ossec service
@@ -132,15 +132,16 @@ class service(socketserver.BaseRequestHandler):
         def encryptaes(cipher, data, padding, blocksize):
             # one-liner to sufficiently pad the text to be encrypted
             pad = lambda s: s + (blocksize - len(s) % blocksize) * padding
-            try: data1 = str(data, 'UTF-8') 
+            try: data1 = str(data, 'UTF-8') #print('d1', data1)
             except TypeError: data1 = str(data)
-            data2 = pad(data1) 
-            data3 = cipher.encrypt(data2) 
+            data2 = pad(data1) #; print('d2', data2)
+            data3 = cipher.encrypt(data2) #; print('d3', data3, type(data3))
             result = base64.b64encode(data3)
             return result
 
         # main AES encrypt and decrypt function with 32 block size padding
         def aescall(secret, data, format):
+
             # padding and block size
             PADDING = '{'
             BLOCK_SIZE = 32
@@ -163,13 +164,13 @@ class service(socketserver.BaseRequestHandler):
         # recommend changing this - if you do, change auto_ossec.py as well - -
         # would recommend this is the default published to git
         secret = "(3j+-sa!333hNA2u3h@*!~h~2&^lk<!B"
+
         print("Client connected with ", self.client_address)
         try:
             data = self.request.recv(1024)
             if data != "":
                 try:
                     data = aescall(secret, data, "decrypt")
-
                     # if this section clears -we know that it is a legit
                     # request, has been decrypted and we're ready to rock
                     if "BDSOSSEC" in data:
