@@ -4,6 +4,8 @@ version 1.7
 
 * add requirements.txt for pexpect and pycrypto
 * update README.md
+* removed print ID - was notification that wasn't needed
+* added child.timeout = 300 for long manage_agent load times
 
 ~~~~~~~~~~~~~~~~
 version 1.6

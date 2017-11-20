@@ -66,6 +66,7 @@ class service(socketserver.BaseRequestHandler):
         # parse OSSEC hids client certificate
         def parse_client(hostname, ipaddr):
             child = pexpect.spawn("/var/ossec/bin/manage_agents")
+            child.timeout=300 
             child.expect("Choose your action")
             child.sendline("a")
             child.expect("for the new agent")
@@ -89,6 +90,7 @@ class service(socketserver.BaseRequestHandler):
                 child.sendline("q")
                 child.close()
                 child = pexpect.spawn("/var/ossec/bin/manage_agents -e %s" % (id))
+                child.timeout=300 
                 for line in child: key = line.rstrip() # actual key export
                 # when no agents are there and one is removed - the agent wont be added properly right away - need to go through the addition again - appears to be an ossec manage bug - going through everything again appears to solve this
                 time.sleep(0.5)
@@ -100,6 +102,7 @@ class service(socketserver.BaseRequestHandler):
             else:
                 child.close()
                 child = pexpect.spawn("/var/ossec/bin/manage_agents -l")
+                child.timeout=300 
                 for line in child:
                     try: line = str(line, 'UTF-8').rstrip()
                     except TypeError: line = str(line).rstrip() # python 2 and 3 compatibility
@@ -108,8 +111,8 @@ class service(socketserver.BaseRequestHandler):
                         break
                 child.close()
                 time.sleep(0.5)
-                print(remove_id)
-                child = pexpect.spawn("/var/ossec/bin/manage_agents -r %s" % (remove_id)) #, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
+                child = pexpect.spawn("/var/ossec/bin/manage_agents -r %s" % (remove_id)) 
+                child.timeout=300 
                 child.close()
                 time.sleep(0.5)
                 return 0
@@ -125,10 +128,10 @@ class service(socketserver.BaseRequestHandler):
         def encryptaes(cipher, data, padding, blocksize):
             # one-liner to sufficiently pad the text to be encrypted
             pad = lambda s: s + (blocksize - len(s) % blocksize) * padding
-            try: data1 = str(data, 'UTF-8') #print('d1', data1)
+            try: data1 = str(data, 'UTF-8') 
             except TypeError: data1 = str(data)
-            data2 = pad(data1) #; print('d2', data2)
-            data3 = cipher.encrypt(data2) #; print('d3', data3, type(data3))
+            data2 = pad(data1) 
+            data3 = cipher.encrypt(data2) 
             result = base64.b64encode(data3)
             return result
 
