@@ -1,4 +1,11 @@
 ~~~~~~~~~~~~~~~~
+version 1.7
+~~~~~~~~~~~~~~~~
+
+* add requirements.txt for pexpect and pycrypto
+* update README.md
+
+~~~~~~~~~~~~~~~~
 version 1.6
 ~~~~~~~~~~~~~~~~
 

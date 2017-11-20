@@ -57,6 +57,16 @@ If you install OSSEC regularly on Linux, you can just install OSSEC normally on 
 
 ./auto_ossec.bin <server_ip>
 
+For the Python version, use:
+
+pip3 install -r requirements.txt
+
+This will install python-crypto (for AES support) and pexpect.
+
+Then:
+
+python auto_ossec.py <server_ip>
+
 ## Install on Windows
 
 For Windows, install OSSEC normally - since it is an MSI you should install this silently. Once OSSEC is installed, run:
