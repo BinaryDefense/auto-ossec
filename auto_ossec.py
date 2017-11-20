@@ -30,6 +30,17 @@ except: import urllib
 import traceback
 
 # try to import python-crypto
+
+### TO COMPILE THIS ON WINDOWS AND NOT USE THE EXE PROVIDED IN GITHUB ####
+
+## FIRST:  Download http://aka.ms/vcpython2 (Microsoft Visual C++ 9.0 for Python)
+## NEXT: Download and Install: https://www.microsoft.com/en-us/download/details.aspx?id=5555
+## NEXT: Download pyinstaller.org (latest version)
+## NEXT: Download Python and Install (python.org)
+## NEXT: Open up a command prompt, type: PATH=C:\Python27 (or 2 or 3 whatever)
+## NEXT: python -m easy_install pycrypto
+## NEXT: Unzip pyinstaller, navigate to the directory and type python pyinstaller --onefile auto_ossec.py - this will generate a binary under auto_ossec\dist
+
 try:
     from Crypto.Cipher import AES
 
