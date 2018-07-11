@@ -28,6 +28,9 @@ import time
 try: import urllib.request as urllib
 except: import urllib
 import traceback
+import locale
+import ctypes
+import string
 
 # try to import python-crypto
 
@@ -118,6 +121,12 @@ if "path=" in autoinstall:
     else:
         path_filename = path
     version_name = path_filename.replace(".tar.gz", "")
+
+# if windows locale not en_XX
+def _not_en():
+    windll = ctypes.windll.kernel32
+    win_locale = locale.windows_locale[ windll.GetUserDefaultUILanguage() ].split('_')
+    return win_locale[0] != 'en'
 
 # download ossec
 def _download_ossec(url):
@@ -410,6 +419,9 @@ try:
             filewrite = open(path + "\\ossec.conf", "w")
             filewrite.write(ossec_config)
             filewrite.close()
+            if _not_en():
+                print ("[*] Fixing permissions.")
+                subprocess.Popen('icacls "' + path + '" /reset /Q /C /T', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).wait()
         else: 
             print("[!] Unable to find the ossec.conf file in: " + path + "\\ossec.conf")
             print("[!] Please install OSSEC first before running any of this.")
