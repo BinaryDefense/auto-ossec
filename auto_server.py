@@ -44,7 +44,7 @@ try:
     from Crypto.Cipher import AES
 
 except ImportError:
-    print("[!] ERROR: pycryptodome not installed. Run 'python3 -m install pycrypto' to fix.")
+    print("[!] ERROR: pycryptodome not installed. Run 'python3 -m easy_install pycrypto' to fix.")
     sys.exit()
 
 # check pexpect library
@@ -52,7 +52,7 @@ try:
     import pexpect
 
 except ImportError:
-    print("[!] ERROR: pexpect not installed. Run 'python3 -m install pexpect' to fix.")
+    print("[!] ERROR: pexpect not installed. Run 'python3 -m easy_install pexpect' to fix.")
     sys.exit()
 
 # global lock to restart ossec service
